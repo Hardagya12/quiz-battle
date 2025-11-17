@@ -21,7 +21,6 @@ export const AuthProvider = ({ children }) => {
 
     if (token && storedUser) {
       setUser(JSON.parse(storedUser));
-      // Verify token is still valid
       api
         .get("/auth/me")
         .then((response) => {
@@ -88,4 +87,3 @@ export const AuthProvider = ({ children }) => {
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
-

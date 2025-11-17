@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import api from "../utils/api";
 import { CATEGORIES } from "../utils/constants";
-import "./Profile.css";
 
 const Profile = () => {
   const { user, logout } = useAuth();
@@ -20,11 +19,9 @@ const Profile = () => {
   const fetchProfileData = async () => {
     setLoading(true);
     try {
-      // Fetch game history
       const historyResponse = await api.get("/game-rooms/history/me");
       setHistory(historyResponse.data.history || []);
 
-      // Calculate category-wise stats
       const stats = calculateCategoryStats(historyResponse.data.history || []);
       setCategoryStats(stats);
     } catch (error) {
@@ -36,7 +33,7 @@ const Profile = () => {
 
   const calculateCategoryStats = (games) => {
     const stats = {};
-    
+
     CATEGORIES.forEach((category) => {
       const categoryGames = games.filter((game) => game.category === category);
       const userGames = categoryGames.map((game) => {
@@ -95,34 +92,35 @@ const Profile = () => {
     return { totalGames, wins, losses, winRate, avgScore };
   };
 
+  const getUserLevel = () => {
+    const totalGames = user?.stats?.totalGames || 0;
+    return Math.floor(totalGames / 10) + 1;
+  };
+
+  const getLevelProgress = () => {
+    const totalGames = user?.stats?.totalGames || 0;
+    return (totalGames % 10) * 10;
+  };
+
   if (loading) {
     return (
-      <div className="profile-container">
-        <div className="loading">Loading profile...</div>
+      <div className="min-h-screen flex items-center justify-center p-8 bg-gray-50">
+        <div className="text-center">
+          <div className="loading-spinner mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading profile...</p>
+        </div>
       </div>
     );
   }
 
   const totalStats = getTotalStats();
+  const userLevel = getUserLevel();
+  const levelProgress = getLevelProgress();
 
   return (
-    <div className="profile-container">
-      <div className="profile-header">
-        <div className="profile-info">
-          <div className="profile-avatar">
-            <span>{user?.username?.charAt(0).toUpperCase()}</span>
-          </div>
-          <div className="profile-details">
-            <h1>{user?.username}</h1>
-            <p className="profile-email">{user?.email}</p>
-            <div className="profile-badges">
-              <span className="badge badge-primary">Level {Math.floor(totalStats.totalGames / 10) + 1}</span>
-              {totalStats.winRate >= 70 && <span className="badge badge-gold">Champion</span>}
-              {totalStats.totalGames >= 50 && <span className="badge badge-silver">Veteran</span>}
-            </div>
-          </div>
-        </div>
-        <div className="profile-actions">
+    <div className="min-h-screen p-4 md:p-8 max-w-7xl mx-auto bg-gray-50">
+      <div className="bg-white rounded-2xl p-8 mb-6 shadow-lg">
+        <div className="flex justify-end gap-4 mb-6">
           <button onClick={() => navigate("/")} className="btn btn-outline">
             Home
           </button>
@@ -130,248 +128,347 @@ const Profile = () => {
             Logout
           </button>
         </div>
-      </div>
 
-      <div className="profile-stats-grid">
-        <div className="stat-card">
-          <div className="stat-icon">🎮</div>
-          <div className="stat-content">
-            <h3>Total Games</h3>
-            <p className="stat-value">{totalStats.totalGames}</p>
+        <div className="flex flex-col md:flex-row items-center gap-8 mb-8">
+          <div className="relative">
+            <div className="w-32 h-32 bg-indigo-500 rounded-full flex items-center justify-center text-white text-5xl font-bold shadow-lg">
+              {user?.username?.charAt(0).toUpperCase()}
+            </div>
+            <div className="absolute -bottom-2 -right-2 bg-yellow-400 text-gray-800 px-3 py-1 rounded-full text-sm font-bold">
+              Lvl {userLevel}
+            </div>
           </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon">🏆</div>
-          <div className="stat-content">
-            <h3>Wins</h3>
-            <p className="stat-value stat-success">{totalStats.wins}</p>
-          </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon">😔</div>
-          <div className="stat-content">
-            <h3>Losses</h3>
-            <p className="stat-value stat-danger">{totalStats.losses}</p>
-          </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon">📊</div>
-          <div className="stat-content">
-            <h3>Win Rate</h3>
-            <p className="stat-value">{totalStats.winRate.toFixed(1)}%</p>
-          </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon">⭐</div>
-          <div className="stat-content">
-            <h3>Average Score</h3>
-            <p className="stat-value">{Math.round(totalStats.avgScore)}</p>
-          </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon">🔥</div>
-          <div className="stat-content">
-            <h3>Total Points</h3>
-            <p className="stat-value">{user?.stats?.totalPoints || 0}</p>
+
+          <div className="flex-1 text-center md:text-left">
+            <h1 className="text-4xl font-bold text-gray-800 mb-2">{user?.username}</h1>
+            <p className="text-gray-600 mb-4">{user?.email}</p>
+
+            <div className="flex gap-2 justify-center md:justify-start mb-4 flex-wrap">
+              {totalStats.winRate >= 70 && (
+                <span className="px-3 py-1 bg-yellow-400 text-gray-800 rounded-full text-xs font-semibold">
+                  🏆 Champion
+                </span>
+              )}
+              {totalStats.totalGames >= 50 && (
+                <span className="px-3 py-1 bg-gray-300 text-gray-800 rounded-full text-xs font-semibold">
+                  ⭐ Veteran
+                </span>
+              )}
+              {totalStats.totalGames >= 100 && (
+                <span className="px-3 py-1 bg-purple-300 text-gray-800 rounded-full text-xs font-semibold">
+                  ⚡ Master
+                </span>
+              )}
+            </div>
+
+            <div className="w-full bg-gray-200 rounded-full h-3 mb-2">
+              <div
+                className="bg-indigo-500 h-3 rounded-full transition-all"
+                style={{ width: `${levelProgress}%` }}
+              ></div>
+            </div>
+            <p className="text-sm text-gray-600">{levelProgress}% to Level {userLevel + 1}</p>
           </div>
         </div>
       </div>
 
-      <div className="profile-tabs">
-        <button
-          className={`tab-button ${activeTab === "overview" ? "active" : ""}`}
-          onClick={() => setActiveTab("overview")}
-        >
-          Overview
-        </button>
-        <button
-          className={`tab-button ${activeTab === "categories" ? "active" : ""}`}
-          onClick={() => setActiveTab("categories")}
-        >
-          Category Analysis
-        </button>
-        <button
-          className={`tab-button ${activeTab === "history" ? "active" : ""}`}
-          onClick={() => setActiveTab("history")}
-        >
-          Match History
-        </button>
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
+        <div className="bg-white p-6 rounded-xl shadow-lg text-center">
+          <div className="text-3xl mb-2">🎯</div>
+          <div className="text-sm text-gray-600 mb-1">Total Games</div>
+          <div className="text-2xl font-bold text-indigo-500">{totalStats.totalGames}</div>
+        </div>
+
+        <div className="bg-white p-6 rounded-xl shadow-lg text-center">
+          <div className="text-3xl mb-2">🏆</div>
+          <div className="text-sm text-gray-600 mb-1">Wins</div>
+          <div className="text-2xl font-bold text-green-500">{totalStats.wins}</div>
+        </div>
+
+        <div className="bg-white p-6 rounded-xl shadow-lg text-center">
+          <div className="text-3xl mb-2">⚡</div>
+          <div className="text-sm text-gray-600 mb-1">Losses</div>
+          <div className="text-2xl font-bold text-red-500">{totalStats.losses}</div>
+        </div>
+
+        <div className="bg-white p-6 rounded-xl shadow-lg text-center">
+          <div className="text-3xl mb-2">📈</div>
+          <div className="text-sm text-gray-600 mb-1">Win Rate</div>
+          <div className="text-2xl font-bold text-indigo-500">{totalStats.winRate.toFixed(1)}%</div>
+        </div>
+
+        <div className="bg-white p-6 rounded-xl shadow-lg text-center">
+          <div className="text-3xl mb-2">⭐</div>
+          <div className="text-sm text-gray-600 mb-1">Avg Score</div>
+          <div className="text-2xl font-bold text-indigo-500">{Math.round(totalStats.avgScore)}</div>
+        </div>
+
+        <div className="bg-white p-6 rounded-xl shadow-lg text-center">
+          <div className="text-3xl mb-2">💎</div>
+          <div className="text-sm text-gray-600 mb-1">Total Points</div>
+          <div className="text-2xl font-bold text-indigo-500">{user?.stats?.totalPoints || 0}</div>
+        </div>
       </div>
 
-      <div className="profile-content">
-        {activeTab === "overview" && (
-          <div className="overview-section">
-            <div className="overview-card">
-              <h2>Performance Overview</h2>
-              <div className="win-rate-chart">
-                <div className="chart-container">
+      <div className="bg-white rounded-xl shadow-lg mb-6">
+        <div className="flex border-b border-gray-200">
+          <button
+            className={`flex-1 px-6 py-4 font-semibold transition-colors ${
+              activeTab === "overview"
+                ? "text-indigo-500 border-b-2 border-indigo-500"
+                : "text-gray-600 hover:text-indigo-500"
+            }`}
+            onClick={() => setActiveTab("overview")}
+          >
+            Overview
+          </button>
+          <button
+            className={`flex-1 px-6 py-4 font-semibold transition-colors ${
+              activeTab === "categories"
+                ? "text-indigo-500 border-b-2 border-indigo-500"
+                : "text-gray-600 hover:text-indigo-500"
+            }`}
+            onClick={() => setActiveTab("categories")}
+          >
+            Categories
+          </button>
+          <button
+            className={`flex-1 px-6 py-4 font-semibold transition-colors ${
+              activeTab === "history"
+                ? "text-indigo-500 border-b-2 border-indigo-500"
+                : "text-gray-600 hover:text-indigo-500"
+            }`}
+            onClick={() => setActiveTab("history")}
+          >
+            History
+          </button>
+        </div>
+
+        <div className="p-6">
+          {activeTab === "overview" && (
+            <div>
+              <h2 className="text-2xl font-bold mb-6 text-gray-800">Performance Overview</h2>
+
+              <div className="mb-8">
+                <div className="flex h-8 rounded-lg overflow-hidden mb-4">
                   <div
-                    className="win-bar"
+                    className="bg-green-500 flex items-center justify-center text-white font-semibold"
                     style={{ width: `${totalStats.winRate}%` }}
-                  ></div>
+                  >
+                    {totalStats.winRate > 10 && `${totalStats.wins} Wins`}
+                  </div>
                   <div
-                    className="loss-bar"
+                    className="bg-red-500 flex items-center justify-center text-white font-semibold"
                     style={{ width: `${100 - totalStats.winRate}%` }}
-                  ></div>
+                  >
+                    {100 - totalStats.winRate > 10 && `${totalStats.losses} Losses`}
+                  </div>
                 </div>
-                <div className="chart-labels">
-                  <span>Wins: {totalStats.winRate.toFixed(1)}%</span>
-                  <span>Losses: {(100 - totalStats.winRate).toFixed(1)}%</span>
+                <div className="flex justify-around text-center">
+                  <div>
+                    <div className="text-2xl font-bold text-green-500">{totalStats.winRate.toFixed(1)}%</div>
+                    <div className="text-sm text-gray-600">Win Rate</div>
+                  </div>
+                  <div>
+                    <div className="text-2xl font-bold text-red-500">{(100 - totalStats.winRate).toFixed(1)}%</div>
+                    <div className="text-sm text-gray-600">Loss Rate</div>
+                  </div>
                 </div>
               </div>
 
-              <div className="recent-activity">
-                <h3>Recent Activity</h3>
+              <div>
+                <h3 className="text-xl font-semibold mb-4 text-gray-800">Recent Activity</h3>
                 {history.length > 0 ? (
-                  <div className="activity-list">
+                  <div className="space-y-4">
                     {history.slice(0, 5).map((game) => {
                       const userPlayer = game.players.find(
                         (p) => p.user._id?.toString() === user.id || p.user.toString() === user.id
                       );
+                      const opponent = game.players.find(
+                        (p) => p.user._id?.toString() !== user.id && p.user.toString() !== user.id
+                      );
                       const isWinner = userPlayer?.isWinner || false;
+
                       return (
-                        <div key={game._id} className={`activity-item ${isWinner ? "won" : "lost"}`}>
-                          <div className="activity-icon">{isWinner ? "🏆" : "😔"}</div>
-                          <div className="activity-details">
-                            <p>
-                              {isWinner ? "Won" : "Lost"} against{" "}
-                              {game.players
-                                .find((p) => (p.user._id?.toString() !== user.id && p.user.toString() !== user.id))
-                                ?.user?.username || "Opponent"}
-                            </p>
-                            <span className="activity-meta">
-                              {game.category} • {userPlayer?.score || 0} pts • {formatDate(game.createdAt)}
+                        <div
+                          key={game._id}
+                          className={`p-4 rounded-lg border-l-4 ${
+                            isWinner ? "bg-green-50 border-green-500" : "bg-red-50 border-red-500"
+                          }`}
+                        >
+                          <div className="flex justify-between items-center mb-2">
+                            <span
+                              className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                                isWinner ? "bg-green-500 text-white" : "bg-red-500 text-white"
+                              }`}
+                            >
+                              {isWinner ? "Victory" : "Defeat"}
                             </span>
+                            <span className="font-bold text-gray-800">{userPlayer?.score || 0} pts</span>
+                          </div>
+                          <p className="text-gray-700 mb-2">vs {opponent?.user?.username || "Opponent"}</p>
+                          <div className="flex gap-4 text-sm text-gray-600">
+                            <span className="px-2 py-1 bg-indigo-100 text-indigo-700 rounded">
+                              {game.category}
+                            </span>
+                            <span>{formatDate(game.createdAt)}</span>
                           </div>
                         </div>
                       );
                     })}
                   </div>
                 ) : (
-                  <p className="no-data">No games played yet</p>
+                  <div className="text-center py-12">
+                    <div className="text-6xl mb-4">🎯</div>
+                    <p className="text-gray-600 mb-4">No games played yet</p>
+                    <button onClick={() => navigate("/")} className="btn btn-primary">
+                      Start Your First Battle
+                    </button>
+                  </div>
                 )}
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {activeTab === "categories" && (
-          <div className="categories-section">
-            <h2>Category-Wise Performance</h2>
-            <div className="category-stats-grid">
-              {CATEGORIES.map((category) => {
-                const stats = categoryStats[category] || {
-                  totalGames: 0,
-                  wins: 0,
-                  losses: 0,
-                  winRate: 0,
-                  avgScore: 0,
-                  bestScore: 0,
-                };
+          {activeTab === "categories" && (
+            <div>
+              <h2 className="text-2xl font-bold mb-6 text-gray-800">Category Performance</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {CATEGORIES.map((category) => {
+                  const stats = categoryStats[category] || {
+                    totalGames: 0,
+                    wins: 0,
+                    losses: 0,
+                    winRate: 0,
+                    avgScore: 0,
+                    bestScore: 0,
+                  };
 
-                return (
-                  <div key={category} className="category-card">
-                    <div className="category-header">
-                      <h3>{category}</h3>
-                      <span className="category-badge">{stats.totalGames} games</span>
+                  return (
+                    <div key={category} className="bg-gray-50 p-6 rounded-xl border-2 border-gray-200">
+                      <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-xl font-bold text-gray-800">{category}</h3>
+                        <span className="text-sm text-gray-600">{stats.totalGames} games</span>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4 mb-4">
+                        <div className="text-center">
+                          <div className="text-2xl font-bold text-indigo-500">{stats.winRate.toFixed(1)}%</div>
+                          <div className="text-xs text-gray-600">Win Rate</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-2xl font-bold text-green-500">{stats.wins}</div>
+                          <div className="text-xs text-gray-600">Wins</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-2xl font-bold text-red-500">{stats.losses}</div>
+                          <div className="text-xs text-gray-600">Losses</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-2xl font-bold text-indigo-500">{stats.avgScore}</div>
+                          <div className="text-xs text-gray-600">Avg Score</div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 mb-4 text-sm text-gray-700">
+                        <span>🏆</span>
+                        <span>Best: {stats.bestScore} pts</span>
+                      </div>
+
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div
+                          className="bg-indigo-500 h-2 rounded-full"
+                          style={{ width: `${stats.winRate}%` }}
+                        ></div>
+                      </div>
                     </div>
-                    <div className="category-stats">
-                      <div className="category-stat-item">
-                        <span className="stat-label">Win Rate</span>
-                        <span className="stat-value">{stats.winRate.toFixed(1)}%</span>
-                      </div>
-                      <div className="category-stat-item">
-                        <span className="stat-label">Wins</span>
-                        <span className="stat-value stat-success">{stats.wins}</span>
-                      </div>
-                      <div className="category-stat-item">
-                        <span className="stat-label">Losses</span>
-                        <span className="stat-value stat-danger">{stats.losses}</span>
-                      </div>
-                      <div className="category-stat-item">
-                        <span className="stat-label">Avg Score</span>
-                        <span className="stat-value">{stats.avgScore}</span>
-                      </div>
-                      <div className="category-stat-item">
-                        <span className="stat-label">Best Score</span>
-                        <span className="stat-value stat-highlight">{stats.bestScore}</span>
-                      </div>
-                    </div>
-                    <div className="category-progress">
-                      <div
-                        className="progress-bar"
-                        style={{ width: `${stats.winRate}%` }}
-                      ></div>
-                    </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {activeTab === "history" && (
-          <div className="history-section">
-            <h2>Match History</h2>
-            {history.length > 0 ? (
-              <div className="history-table-container">
-                <table className="history-table">
-                  <thead>
-                    <tr>
-                      <th>Date</th>
-                      <th>Category</th>
-                      <th>Opponent</th>
-                      <th>Your Score</th>
-                      <th>Opponent Score</th>
-                      <th>Result</th>
-                      <th>Duration</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {history.map((game) => {
-                      const userPlayer = game.players.find(
-                        (p) => p.user._id?.toString() === user.id || p.user.toString() === user.id
-                      );
-                      const opponent = game.players.find(
-                        (p) => (p.user._id?.toString() !== user.id && p.user.toString() !== user.id)
-                      );
-                      const isWinner = userPlayer?.isWinner || false;
+          {activeTab === "history" && (
+            <div>
+              <h2 className="text-2xl font-bold mb-6 text-gray-800">Match History</h2>
+              {history.length > 0 ? (
+                <div className="space-y-4">
+                  {history.map((game) => {
+                    const userPlayer = game.players.find(
+                      (p) => p.user._id?.toString() === user.id || p.user.toString() === user.id
+                    );
+                    const opponent = game.players.find(
+                      (p) => p.user._id?.toString() !== user.id && p.user.toString() !== user.id
+                    );
+                    const isWinner = userPlayer?.isWinner || false;
 
-                      return (
-                        <tr key={game._id} className={isWinner ? "won-row" : "lost-row"}>
-                          <td>{formatDate(game.createdAt)}</td>
-                          <td>
-                            <span className="category-tag">{game.category}</span>
-                          </td>
-                          <td>{opponent?.user?.username || "Unknown"}</td>
-                          <td className="score-cell">{userPlayer?.score || 0}</td>
-                          <td className="score-cell">{opponent?.score || 0}</td>
-                          <td>
-                            <span className={`result-badge ${isWinner ? "winner" : "loser"}`}>
-                              {isWinner ? "Won" : "Lost"}
-                            </span>
-                          </td>
-                          <td>{game.duration}s</td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <div className="no-history">
-                <p>No games played yet. Start your first battle!</p>
-                <button onClick={() => navigate("/")} className="btn btn-primary">
-                  Play Now
-                </button>
-              </div>
-            )}
-          </div>
-        )}
+                    return (
+                      <div
+                        key={game._id}
+                        className={`p-6 rounded-xl border-l-4 ${
+                          isWinner ? "bg-green-50 border-green-500" : "bg-red-50 border-red-500"
+                        }`}
+                      >
+                        <div className="flex items-center gap-4 mb-4">
+                          <div className={`text-3xl ${isWinner ? "text-green-500" : "text-red-500"}`}>
+                            {isWinner ? "🏆" : "🎯"}
+                          </div>
+                          <span
+                            className={`text-lg font-semibold ${
+                              isWinner ? "text-green-700" : "text-red-700"
+                            }`}
+                          >
+                            {isWinner ? "Victory" : "Defeat"}
+                          </span>
+                        </div>
+
+                        <div className="mb-4">
+                          <div className="text-sm text-gray-600 mb-1">Opponent</div>
+                          <div className="font-semibold text-gray-800">{opponent?.user?.username || "Unknown"}</div>
+                        </div>
+
+                        <div className="flex items-center justify-around mb-4 p-4 bg-white rounded-lg">
+                          <div className="text-center">
+                            <div className="text-sm text-gray-600 mb-1">You</div>
+                            <div className="text-2xl font-bold text-indigo-500">{userPlayer?.score || 0}</div>
+                          </div>
+                          <div className="text-xl font-bold text-gray-500">-</div>
+                          <div className="text-center">
+                            <div className="text-sm text-gray-600 mb-1">Opp</div>
+                            <div className="text-2xl font-bold text-indigo-500">{opponent?.score || 0}</div>
+                          </div>
+                        </div>
+
+                        <div className="flex gap-4 flex-wrap text-sm text-gray-600">
+                          <span className="px-3 py-1 bg-indigo-100 text-indigo-700 rounded">
+                            {game.category}
+                          </span>
+                          <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded">
+                            ⏱️ {game.duration}s
+                          </span>
+                          <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded">
+                            📅 {formatDate(game.createdAt)}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <div className="text-6xl mb-4">⏰</div>
+                  <p className="text-gray-600 mb-4">No match history yet</p>
+                  <button onClick={() => navigate("/")} className="btn btn-primary">
+                    Play Your First Game
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
 };
 
 export default Profile;
-

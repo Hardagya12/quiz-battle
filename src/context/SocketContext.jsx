@@ -50,7 +50,6 @@ export const SocketProvider = ({ children }) => {
         setSocket(null);
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated, user]);
 
   const value = {
@@ -60,4 +59,3 @@ export const SocketProvider = ({ children }) => {
 
   return <SocketContext.Provider value={value}>{children}</SocketContext.Provider>;
 };
-

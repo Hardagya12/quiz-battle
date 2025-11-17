@@ -3,7 +3,6 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useSocket } from "../context/SocketContext";
 import api from "../utils/api";
-import "./Lobby.css";
 
 const Lobby = () => {
   const { roomId } = useParams();
@@ -84,7 +83,7 @@ const Lobby = () => {
 
   if (loading) {
     return (
-      <div className="lobby-container">
+      <div className="min-h-screen flex items-center justify-center p-8 bg-gradient-to-br from-indigo-500 via-purple-500 to-purple-600">
         <div className="loading">Loading...</div>
       </div>
     );
@@ -92,11 +91,13 @@ const Lobby = () => {
 
   if (error && !room) {
     return (
-      <div className="lobby-container">
-        <div className="error-message">{error}</div>
-        <button onClick={() => navigate("/")} className="btn btn-primary">
-          Go Home
-        </button>
+      <div className="min-h-screen flex items-center justify-center p-8 bg-gradient-to-br from-indigo-500 via-purple-500 to-purple-600">
+        <div className="bg-white p-8 rounded-2xl shadow-2xl max-w-md w-full text-center">
+          <div className="error-message mb-4">{error}</div>
+          <button onClick={() => navigate("/")} className="btn btn-primary">
+            Go Home
+          </button>
+        </div>
       </div>
     );
   }
@@ -106,59 +107,61 @@ const Lobby = () => {
   const waitingForOpponent = !room?.player2;
 
   return (
-    <div className="lobby-container">
-      <div className="lobby-card">
-        <h2>Game Lobby</h2>
-        <div className="room-info">
-          <p>
-            <strong>Room Code:</strong> {roomId}
+    <div className="min-h-screen flex items-center justify-center p-8 bg-gradient-to-br from-indigo-500 via-purple-500 to-purple-600">
+      <div className="bg-white rounded-2xl p-8 max-w-2xl w-full shadow-2xl">
+        <h2 className="text-center mb-6 text-3xl font-bold text-gray-800">Game Lobby</h2>
+        <div className="bg-gray-50 p-4 rounded-lg mb-6 text-center">
+          <p className="mb-2 text-lg">
+            <strong className="text-indigo-500">Room Code:</strong> <span className="font-mono font-bold">{roomId}</span>
           </p>
-          <p>
-            <strong>Category:</strong> {room?.category || "General"}
+          <p className="text-lg">
+            <strong className="text-indigo-500">Category:</strong> {room?.category || "General"}
           </p>
         </div>
 
-        <div className="players-list">
-          <div className="player-card">
-            <h3>Player 1</h3>
-            <p>{room?.player1?.username || "You"}</p>
-            {isPlayer1 && <span className="badge">You</span>}
+        <div className="flex items-center justify-around mb-6 gap-4 flex-col md:flex-row">
+          <div className="flex-1 bg-gray-50 p-6 rounded-xl text-center border-2 border-gray-200">
+            <h3 className="mb-2 text-sm text-gray-600 uppercase font-semibold">Player 1</h3>
+            <p className="text-xl font-semibold text-gray-800 flex items-center justify-center gap-2">
+              {room?.player1?.username || "You"}
+              {isPlayer1 && <span className="badge">You</span>}
+            </p>
           </div>
 
-          <div className="vs-divider">VS</div>
+          <div className="text-2xl font-bold text-indigo-500 px-4">VS</div>
 
-          <div className="player-card">
-            <h3>Player 2</h3>
+          <div className="flex-1 bg-gray-50 p-6 rounded-xl text-center border-2 border-gray-200">
+            <h3 className="mb-2 text-sm text-gray-600 uppercase font-semibold">Player 2</h3>
             {waitingForOpponent ? (
-              <p className="waiting">Waiting for opponent...</p>
+              <p className="text-gray-500 italic">Waiting for opponent...</p>
             ) : (
-              <>
-                <p>{room?.player2?.username}</p>
+              <p className="text-xl font-semibold text-gray-800 flex items-center justify-center gap-2">
+                {room?.player2?.username}
                 {isPlayer2 && <span className="badge">You</span>}
-              </>
+              </p>
             )}
           </div>
         </div>
 
-        {error && <div className="error-message">{error}</div>}
+        {error && <div className="error-message mb-4">{error}</div>}
 
         {waitingForOpponent ? (
-          <div className="waiting-section">
-            <div className="loading-spinner"></div>
-            <p>Share the room code with a friend or wait for a match</p>
+          <div className="text-center py-6">
+            <div className="loading-spinner mx-auto mb-4"></div>
+            <p className="mb-4 text-gray-600">Share the room code with a friend or wait for a match</p>
             <button onClick={() => navigate("/")} className="btn btn-secondary">
               Cancel
             </button>
           </div>
         ) : (
-          <div className="ready-section">
-            <p>Both players ready!</p>
+          <div className="text-center py-6">
+            <p className="mb-4 text-lg text-gray-700">Both players ready!</p>
             {isPlayer1 && (
               <button onClick={handleStartGame} className="btn btn-primary">
                 Start Game
               </button>
             )}
-            {!isPlayer1 && <p>Waiting for host to start the game...</p>}
+            {!isPlayer1 && <p className="text-gray-600">Waiting for host to start the game...</p>}
           </div>
         )}
       </div>

@@ -10,7 +10,6 @@ import GameResult from "./pages/GameResult";
 import Leaderboard from "./pages/Leaderboard";
 import History from "./pages/History";
 import Profile from "./pages/Profile";
-import "./App.css";
 
 const PrivateRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();

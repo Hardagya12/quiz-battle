@@ -6,7 +6,6 @@ import QuestionCard from "../components/QuestionCard";
 import ScoreBoard from "../components/ScoreBoard";
 import Timer from "../components/Timer";
 import PlayerStatus from "../components/PlayerStatus";
-import "./GameRoom.css";
 
 const GameRoom = () => {
   const { roomId } = useParams();
@@ -141,54 +140,60 @@ const GameRoom = () => {
 
   if (error && !gameState.question) {
     return (
-      <div className="game-room-container">
-        <div className="error-message">{error}</div>
-        <button onClick={() => navigate("/")} className="btn btn-primary">
-          Go Home
-        </button>
+      <div className="min-h-screen p-4 bg-gradient-to-br from-indigo-500 via-purple-500 to-purple-600">
+        <div className="max-w-4xl mx-auto bg-white p-8 rounded-2xl shadow-2xl text-center">
+          <div className="error-message mb-4">{error}</div>
+          <button onClick={() => navigate("/")} className="btn btn-primary">
+            Go Home
+          </button>
+        </div>
       </div>
     );
   }
 
   if (!gameState.question) {
     return (
-      <div className="game-room-container">
+      <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-indigo-500 via-purple-500 to-purple-600">
         <div className="loading">Waiting for game to start...</div>
       </div>
     );
   }
 
   return (
-    <div className="game-room-container">
-      <div className="game-header">
-        <div className="game-info">
-          <h2>Question {gameState.questionIndex + 1} of {gameState.totalQuestions}</h2>
-          <p className="category-badge">{gameState.question.category}</p>
+    <div className="min-h-screen p-4 bg-gradient-to-br from-indigo-500 via-purple-500 to-purple-600">
+      <div className="max-w-5xl mx-auto">
+        <div className="bg-white p-6 rounded-xl mb-4 flex justify-between items-center shadow-lg flex-col md:flex-row gap-4">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-800 mb-2">Question {gameState.questionIndex + 1} of {gameState.totalQuestions}</h2>
+            <span className="inline-block px-3 py-1 bg-indigo-500 text-white rounded-full text-xs font-semibold">
+              {gameState.question.category}
+            </span>
+          </div>
+          <Timer timeRemaining={gameState.timeRemaining} />
         </div>
-        <Timer timeRemaining={gameState.timeRemaining} />
-      </div>
 
-      <ScoreBoard
-        scores={gameState.scores}
-        player1={gameState.room?.player1}
-        player2={gameState.room?.player2}
-        currentUserId={user.id}
-      />
-
-      <div className="game-content">
-        <PlayerStatus
-          player1Answered={gameState.player1Answered}
-          player2Answered={gameState.player2Answered}
-          isPlayer1={isPlayer1}
+        <ScoreBoard
+          scores={gameState.scores}
+          player1={gameState.room?.player1}
+          player2={gameState.room?.player2}
+          currentUserId={user.id}
         />
 
-        <QuestionCard
-          question={gameState.question.question}
-          options={gameState.question.options}
-          selectedAnswer={selectedAnswer}
-          hasAnswered={hasAnswered}
-          onAnswer={handleAnswer}
-        />
+        <div>
+          <PlayerStatus
+            player1Answered={gameState.player1Answered}
+            player2Answered={gameState.player2Answered}
+            isPlayer1={isPlayer1}
+          />
+
+          <QuestionCard
+            question={gameState.question.question}
+            options={gameState.question.options}
+            selectedAnswer={selectedAnswer}
+            hasAnswered={hasAnswered}
+            onAnswer={handleAnswer}
+          />
+        </div>
       </div>
     </div>
   );

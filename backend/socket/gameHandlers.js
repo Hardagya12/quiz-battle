@@ -76,6 +76,9 @@ export const handleGameEvents = (io, socket, activeRooms) => {
       const roomData = activeRooms.get(roomId) || {};
       roomData.gameRoom = gameRoom;
       roomData.currentQuestionIndex = 0;
+      if (!roomData.timers) {
+        roomData.timers = {};
+      }
       activeRooms.set(roomId, roomData);
 
       // Send first question to both players
@@ -191,6 +194,11 @@ export const handleGameEvents = (io, socket, activeRooms) => {
     const roomData = activeRooms.get(roomId);
     if (!roomData) return;
 
+    // Initialize timers if not exists
+    if (!roomData.timers) {
+      roomData.timers = {};
+    }
+
     // Clear existing timer
     if (roomData.timers.questionTimer) {
       clearTimeout(roomData.timers.questionTimer);
@@ -225,7 +233,7 @@ export const handleGameEvents = (io, socket, activeRooms) => {
     activeRooms
   ) => {
     const roomData = activeRooms.get(roomId);
-    if (roomData && roomData.timers.timerInterval) {
+    if (roomData && roomData.timers && roomData.timers.timerInterval) {
       clearInterval(roomData.timers.timerInterval);
     }
 
@@ -260,7 +268,7 @@ export const handleGameEvents = (io, socket, activeRooms) => {
   // Move to next question or end game
   const moveToNextQuestion = async (io, roomId, gameRoom, activeRooms) => {
     const roomData = activeRooms.get(roomId);
-    if (roomData && roomData.timers.timerInterval) {
+    if (roomData && roomData.timers && roomData.timers.timerInterval) {
       clearInterval(roomData.timers.timerInterval);
     }
 
@@ -379,7 +387,7 @@ export const handleGameEvents = (io, socket, activeRooms) => {
       // Clean up
       if (activeRooms.has(roomId)) {
         const roomData = activeRooms.get(roomId);
-        if (roomData.timers.timerInterval) {
+        if (roomData && roomData.timers && roomData.timers.timerInterval) {
           clearInterval(roomData.timers.timerInterval);
         }
         activeRooms.delete(roomId);
