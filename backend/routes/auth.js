@@ -43,6 +43,8 @@ router.post("/register", async (req, res) => {
         username: user.username,
         email: user.email,
         stats: user.stats,
+        powerUps: user.powerUps,
+        progression: user.progression,
       },
     });
   } catch (error) {
@@ -90,6 +92,8 @@ router.post("/login", async (req, res) => {
         username: user.username,
         email: user.email,
         stats: user.stats,
+        powerUps: user.powerUps,
+        progression: user.progression,
       },
     });
   } catch (error) {
@@ -106,6 +110,8 @@ router.get("/me", authenticate, async (req, res) => {
         username: req.user.username,
         email: req.user.email,
         stats: req.user.stats,
+        powerUps: req.user.powerUps,
+        progression: req.user.progression,
       },
     });
   } catch (error) {

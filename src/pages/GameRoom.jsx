@@ -6,6 +6,7 @@ import QuestionCard from "../components/QuestionCard";
 import ScoreBoard from "../components/ScoreBoard";
 import Timer from "../components/Timer";
 import PlayerStatus from "../components/PlayerStatus";
+import { POWER_UPS } from "../utils/constants";
 
 const GameRoom = () => {
   const { roomId } = useParams();
@@ -25,6 +26,31 @@ const GameRoom = () => {
   const [selectedAnswer, setSelectedAnswer] = useState(null);
   const [hasAnswered, setHasAnswered] = useState(false);
   const [error, setError] = useState("");
+  const [countdown, setCountdown] = useState(null);
+  const [countdownSeconds, setCountdownSeconds] = useState(0);
+  const [availablePowerUps, setAvailablePowerUps] = useState(() => user?.powerUps || []);
+
+  useEffect(() => {
+    setAvailablePowerUps(user?.powerUps || []);
+  }, [user]);
+
+  useEffect(() => {
+    if (!countdown) return;
+    const interval = setInterval(() => {
+      const remaining = Math.max(0, Math.ceil((countdown.expiresAt - Date.now()) / 1000));
+      setCountdownSeconds(remaining);
+      if (remaining <= 0) {
+        setCountdown(null);
+      }
+    }, 250);
+    return () => clearInterval(interval);
+  }, [countdown]);
+
+  useEffect(() => {
+    if (!countdown) {
+      setCountdownSeconds(0);
+    }
+  }, [countdown]);
 
   useEffect(() => {
     if (!socket || !user) return;
@@ -35,7 +61,7 @@ const GameRoom = () => {
     socket.emit("join-room", { roomId, userId: user.id });
 
     // Game started
-    socket.on("game-started", ({ question, room }) => {
+    socket.on("game-started", ({ question, room, startDelayMs }) => {
       console.log("GameRoom: Game started event received", { question, room });
       setGameState((prev) => ({
         ...prev,
@@ -45,10 +71,26 @@ const GameRoom = () => {
         timeRemaining: question.timeLimit,
         room,
       }));
+      if (startDelayMs) {
+        setCountdown({
+          duration: startDelayMs,
+          expiresAt: Date.now() + startDelayMs,
+          message: "Match starting...",
+        });
+      }
+    });
+
+    socket.on("game-countdown", ({ duration, message }) => {
+      setCountdown({
+        duration,
+        expiresAt: Date.now() + duration,
+        message,
+      });
     });
 
     // Timer update
     socket.on("timer-update", ({ timeRemaining }) => {
+      setCountdown(null);
       setGameState((prev) => ({
         ...prev,
         timeRemaining,
@@ -106,6 +148,15 @@ const GameRoom = () => {
       });
     });
 
+    socket.on("powerup-used", ({ userId: actorId, type }) => {
+      if (actorId !== user.id) return;
+      setAvailablePowerUps((prev) =>
+        prev.map((entry) =>
+          entry.type === type ? { ...entry, quantity: Math.max(0, entry.quantity - 1) } : entry
+        )
+      );
+    });
+
     socket.on("error", ({ message }) => {
       setError(message);
     });
@@ -117,6 +168,8 @@ const GameRoom = () => {
       socket.off("answer-received");
       socket.off("next-question");
       socket.off("game-ended");
+      socket.off("game-countdown");
+      socket.off("powerup-used");
       socket.off("error");
     };
   }, [socket, roomId, user.id, navigate]);
@@ -135,8 +188,23 @@ const GameRoom = () => {
     });
   };
 
+  const handleUsePowerUp = (type) => {
+    const inventoryItem = availablePowerUps.find((p) => p.type === type);
+    if (!inventoryItem || inventoryItem.quantity <= 0) {
+      setError("You have no charges left for that power-up.");
+      return;
+    }
+    if (!socket) return;
+    socket.emit("use-powerup", {
+      roomId,
+      userId: user.id,
+      type,
+    });
+  };
+
   const isPlayer1 = gameState.room?.player1?.toString() === user.id || 
     gameState.room?.player1?._id?.toString() === user.id;
+  const matchType = gameState.room?.matchType || "duel";
 
   if (error && !gameState.question) {
     return (
@@ -168,9 +236,22 @@ const GameRoom = () => {
             <span className="inline-block px-3 py-1 bg-indigo-500 text-white rounded-full text-xs font-semibold">
               {gameState.question.category}
             </span>
+            <span className="inline-block px-3 py-1 ml-2 bg-gray-100 text-gray-700 rounded-full text-xs font-semibold capitalize">
+              {matchType}
+            </span>
           </div>
           <Timer timeRemaining={gameState.timeRemaining} />
         </div>
+
+        {countdown && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-4 flex items-center justify-between">
+            <div>
+              <p className="text-sm font-semibold text-yellow-800">{countdown.message || "Get ready"}</p>
+              <p className="text-xs text-yellow-600">Question drops in</p>
+            </div>
+            <div className="text-3xl font-bold text-yellow-600">{countdownSeconds}s</div>
+          </div>
+        )}
 
         <ScoreBoard
           scores={gameState.scores}
@@ -178,6 +259,29 @@ const GameRoom = () => {
           player2={gameState.room?.player2}
           currentUserId={user.id}
         />
+
+        <div className="bg-white p-4 rounded-xl shadow mb-4">
+          <p className="text-xs uppercase text-gray-500 font-semibold mb-2">Power-Ups</p>
+          <div className="flex flex-wrap gap-3">
+            {POWER_UPS.map((powerUp) => {
+              const inventoryItem = availablePowerUps.find((p) => p.type === powerUp.type);
+              return (
+                <button
+                  key={powerUp.type}
+                  onClick={() => handleUsePowerUp(powerUp.type)}
+                  disabled={hasAnswered || (inventoryItem?.quantity ?? 0) === 0 || countdown}
+                  className={`px-3 py-2 rounded-lg text-sm font-semibold border ${
+                    (inventoryItem?.quantity ?? 0) > 0
+                      ? "border-indigo-200 text-indigo-600 hover:bg-indigo-50"
+                      : "border-gray-100 text-gray-400 cursor-not-allowed"
+                  }`}
+                >
+                  {powerUp.label} ({inventoryItem?.quantity ?? 0})
+                </button>
+              );
+            })}
+          </div>
+        </div>
 
         <div>
           <PlayerStatus

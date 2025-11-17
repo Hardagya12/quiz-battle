@@ -10,6 +10,7 @@ import GameResult from "./pages/GameResult";
 import Leaderboard from "./pages/Leaderboard";
 import History from "./pages/History";
 import Profile from "./pages/Profile";
+import Events from "./pages/Events";
 
 const PrivateRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
@@ -80,6 +81,14 @@ function App() {
               element={
                 <PrivateRoute>
                   <Profile />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/events"
+              element={
+                <PrivateRoute>
+                  <Events />
                 </PrivateRoute>
               }
             />

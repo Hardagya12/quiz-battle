@@ -11,10 +11,13 @@ import User from "./models/User.js";
 import authRoutes from "./routes/auth.js";
 import questionRoutes from "./routes/questions.js";
 import gameRoomRoutes from "./routes/gameRooms.js";
+import eventsRoutes from "./routes/events.js";
+import progressionRoutes from "./routes/progression.js";
 
 // Socket handlers
 import { handleRoomEvents } from "./socket/roomHandlers.js";
 import { handleGameEvents } from "./socket/gameHandlers.js";
+import { initEventScheduler } from "./services/eventScheduler.js";
 
 dotenv.config();
 
@@ -34,6 +37,8 @@ mongoose
 app.use("/api/auth", authRoutes);
 app.use("/api/questions", questionRoutes);
 app.use("/api/game-rooms", gameRoomRoutes);
+app.use("/api/events", eventsRoutes);
+app.use("/api/progression", progressionRoutes);
 
 // Health check
 app.get("/api/health", (req, res) => {
@@ -94,3 +99,5 @@ const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
   console.log(`Backend running on port ${PORT}`);
 });
+
+initEventScheduler(io);

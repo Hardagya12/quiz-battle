@@ -54,6 +54,23 @@ const questionSchema = new mongoose.Schema(
       min: 50,
       max: 200,
     },
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
+    status: {
+      type: String,
+      enum: ["approved", "pending", "rejected"],
+      default: "approved",
+    },
+    reviewNotes: {
+      type: String,
+    },
+    votes: {
+      up: { type: Number, default: 0 },
+      down: { type: Number, default: 0 },
+    },
   },
   {
     timestamps: true,

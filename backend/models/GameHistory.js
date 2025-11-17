@@ -34,11 +34,13 @@ const gameHistorySchema = new mongoose.Schema(
           answer: String,
           isCorrect: Boolean,
           points: Number,
+          usedPowerup: String,
         },
         player2Answer: {
           answer: String,
           isCorrect: Boolean,
           points: Number,
+          usedPowerup: String,
         },
       },
     ],
@@ -47,6 +49,23 @@ const gameHistorySchema = new mongoose.Schema(
       ref: "User",
       default: null,
     },
+    highlights: {
+      clutchQuestion: { type: Number, default: -1 },
+      margin: { type: Number, default: 0 },
+    },
+    reactions: [
+      {
+        user: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
+        },
+        emoji: String,
+        createdAt: { type: Date, default: Date.now },
+      },
+    ],
+    shareLink: {
+      type: String,
+    },
     duration: {
       type: Number, // in seconds
       default: 0,
@@ -54,6 +73,15 @@ const gameHistorySchema = new mongoose.Schema(
     category: {
       type: String,
       default: "General",
+    },
+    matchType: {
+      type: String,
+      default: "duel",
+    },
+    raidMeta: {
+      bossHp: Number,
+      damageDealt: Number,
+      success: Boolean,
     },
   },
   {

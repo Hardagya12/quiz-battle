@@ -92,6 +92,11 @@ const Profile = () => {
     return { totalGames, wins, losses, winRate, avgScore };
   };
 
+  const rating = user?.stats?.rating;
+  const badges = user?.progression?.badges || [];
+  const dailyQuests = user?.progression?.daily?.quests || [];
+  const weeklyQuests = user?.progression?.weekly?.quests || [];
+
   const getUserLevel = () => {
     const totalGames = user?.stats?.totalGames || 0;
     return Math.floor(totalGames / 10) + 1;
@@ -172,6 +177,33 @@ const Profile = () => {
         </div>
       </div>
 
+      {rating && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <div className="bg-white p-6 rounded-xl shadow-lg flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-500 uppercase font-semibold">Current Tier</p>
+              <p className="text-3xl font-bold text-gray-800">{rating.tier}</p>
+              <p className="text-sm text-gray-500">Overall MMR {Math.round(rating.overall || 1200)}</p>
+            </div>
+            <div className="text-right text-sm text-gray-500">
+              <p className="font-semibold">Unlocked</p>
+              <p>{(rating.tiersUnlocked || []).join(", ")}</p>
+            </div>
+          </div>
+          <div className="bg-white p-6 rounded-xl shadow-lg">
+            <p className="text-sm text-gray-500 uppercase font-semibold mb-2">Category Ratings</p>
+            <div className="space-y-1 text-sm text-gray-700 max-h-40 overflow-auto">
+              {Object.entries(rating.categories || {}).map(([category, mmr]) => (
+                <div key={category} className="flex justify-between">
+                  <span>{category}</span>
+                  <span className="font-semibold">{Math.round(mmr)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
         <div className="bg-white p-6 rounded-xl shadow-lg text-center">
           <div className="text-3xl mb-2">🎯</div>
@@ -209,6 +241,24 @@ const Profile = () => {
           <div className="text-2xl font-bold text-indigo-500">{user?.stats?.totalPoints || 0}</div>
         </div>
       </div>
+
+      {badges.length > 0 && (
+        <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
+          <h3 className="text-xl font-bold text-gray-800 mb-4">Badge Cabinet</h3>
+          <div className="flex flex-wrap gap-3">
+            {badges.map((badge) => (
+              <div
+                key={badge.id}
+                className={`px-4 py-2 rounded-full text-sm font-semibold ${
+                  badge.equipped ? "bg-indigo-500 text-white" : "bg-gray-100 text-gray-700"
+                }`}
+              >
+                {badge.name}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="bg-white rounded-xl shadow-lg mb-6">
         <div className="flex border-b border-gray-200">

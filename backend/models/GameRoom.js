@@ -20,7 +20,7 @@ const gameRoomSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["waiting", "active", "finished"],
+      enum: ["waiting", "starting", "active", "finished"],
       default: "waiting",
     },
     questions: [
@@ -58,6 +58,35 @@ const gameRoomSchema = new mongoose.Schema(
     category: {
       type: String,
       default: "General",
+    },
+    matchType: {
+      type: String,
+      enum: ["duel", "team", "raid"],
+      default: "duel",
+    },
+    teams: [
+      {
+        name: { type: String, default: "Team" },
+        color: { type: String, default: "#6366f1" },
+        members: [
+          {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User",
+          },
+        ],
+        score: { type: Number, default: 0 },
+      },
+    ],
+    maxPlayers: {
+      type: Number,
+      default: 2,
+      min: 2,
+      max: 4,
+    },
+    raidMeta: {
+      bossName: { type: String, default: "Quiz Titan" },
+      bossHp: { type: Number, default: 1000 },
+      damageDealt: { type: Number, default: 0 },
     },
     startedAt: {
       type: Date,
