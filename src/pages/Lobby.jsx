@@ -3,12 +3,16 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useSocket } from "../context/SocketContext";
 import api from "../utils/api";
+import RetroBackground from "../components/RetroBackground";
+import Sidebar from "../components/Sidebar";
+import { HiUser, HiLightningBolt } from "react-icons/hi";
 
 const Lobby = () => {
   const { roomId } = useParams();
-  const navigate = useNavigate();
   const { user } = useAuth();
   const { socket } = useSocket();
+  const navigate = useNavigate();
+
   const [room, setRoom] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -83,19 +87,23 @@ const Lobby = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-8 bg-gradient-to-br from-indigo-500 via-purple-500 to-purple-600">
-        <div className="loading">Loading...</div>
+      <div className="min-h-screen flex items-center justify-center p-8 relative overflow-hidden">
+        <RetroBackground />
+        <Sidebar />
+        <div className="relative z-10 text-neo-black font-pixel text-2xl animate-pulse">LOADING...</div>
       </div>
     );
   }
 
   if (error && !room) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-8 bg-gradient-to-br from-indigo-500 via-purple-500 to-purple-600">
-        <div className="bg-white p-8 rounded-2xl shadow-2xl max-w-md w-full text-center">
-          <div className="error-message mb-4">{error}</div>
-          <button onClick={() => navigate("/")} className="btn btn-primary">
-            Go Home
+      <div className="min-h-screen flex items-center justify-center p-8 relative overflow-hidden">
+        <RetroBackground />
+        <Sidebar />
+        <div className="bg-neo-white p-8 border-3 border-neo-black shadow-neo-xl max-w-md w-full text-center relative z-10">
+          <div className="font-mono text-red-500 font-bold mb-4">{error}</div>
+          <button onClick={() => navigate("/")} className="btn btn-primary w-full">
+            GO HOME
           </button>
         </div>
       </div>
@@ -107,67 +115,99 @@ const Lobby = () => {
   const waitingForOpponent = !room?.player2;
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-8 bg-gradient-to-br from-indigo-500 via-purple-500 to-purple-600">
-      <div className="bg-white rounded-2xl p-8 max-w-2xl w-full shadow-2xl">
-        <h2 className="text-center mb-6 text-3xl font-bold text-gray-800">Game Lobby</h2>
-        <div className="bg-gray-50 p-4 rounded-lg mb-6 text-center">
-          <p className="mb-2 text-lg">
-            <strong className="text-indigo-500">Room Code:</strong> <span className="font-mono font-bold">{roomId}</span>
-          </p>
-          <p className="text-lg">
-            <strong className="text-indigo-500">Category:</strong> {room?.category || "General"}
-          </p>
-        </div>
-
-        <div className="flex items-center justify-around mb-6 gap-4 flex-col md:flex-row">
-          <div className="flex-1 bg-gray-50 p-6 rounded-xl text-center border-2 border-gray-200">
-            <h3 className="mb-2 text-sm text-gray-600 uppercase font-semibold">Player 1</h3>
-            <p className="text-xl font-semibold text-gray-800 flex items-center justify-center gap-2">
-              {room?.player1?.username || "You"}
-              {isPlayer1 && <span className="badge">You</span>}
-            </p>
+    <div className="min-h-screen flex items-center justify-center p-8 relative overflow-hidden">
+      <RetroBackground />
+      <Sidebar />
+      
+      <div className="bg-neo-white border-3 border-neo-black shadow-neo-xl p-8 max-w-3xl w-full relative z-10">
+        <header className="text-center mb-8 border-b-3 border-neo-black pb-4">
+          <h2 className="text-3xl font-pixel text-neo-black mb-2">GAME LOBBY</h2>
+          <div className="flex justify-center gap-4 text-sm font-mono font-bold uppercase">
+            <span className="bg-neo-bg px-3 py-1 border-2 border-neo-black">
+              Code: {roomId}
+            </span>
+            <span className="bg-neo-accent px-3 py-1 border-2 border-neo-black">
+              {room?.category || "General"}
+            </span>
           </div>
+        </header>
 
-          <div className="text-2xl font-bold text-indigo-500 px-4">VS</div>
-
-          <div className="flex-1 bg-gray-50 p-6 rounded-xl text-center border-2 border-gray-200">
-            <h3 className="mb-2 text-sm text-gray-600 uppercase font-semibold">Player 2</h3>
-            {waitingForOpponent ? (
-              <p className="text-gray-500 italic">Waiting for opponent...</p>
-            ) : (
-              <p className="text-xl font-semibold text-gray-800 flex items-center justify-center gap-2">
-                {room?.player2?.username}
-                {isPlayer2 && <span className="badge">You</span>}
+        <div className="flex items-center justify-around mb-8 gap-6 flex-col md:flex-row">
+          {/* Player 1 Card */}
+          <div className="flex-1 w-full bg-neo-bg p-6 border-3 border-neo-black shadow-neo text-center relative">
+            <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-neo-primary text-white px-3 py-1 border-2 border-neo-black font-pixel text-xs">
+              PLAYER 1
+            </div>
+            <div className="mt-4">
+              <HiUser className="text-6xl mx-auto mb-2 text-neo-black" />
+              <p className="text-xl font-bold font-mono text-neo-black truncate">
+                {room?.player1?.username || "You"}
               </p>
-            )}
+              {isPlayer1 && <span className="inline-block mt-2 px-2 py-0.5 bg-neo-black text-neo-white text-xs font-bold uppercase">YOU</span>}
+            </div>
+          </div>
+
+          <div className="text-4xl font-pixel text-neo-black animate-pulse">VS</div>
+
+          {/* Player 2 Card */}
+          <div className="flex-1 w-full bg-neo-bg p-6 border-3 border-neo-black shadow-neo text-center relative">
+            <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-neo-secondary text-neo-black px-3 py-1 border-2 border-neo-black font-pixel text-xs">
+              PLAYER 2
+            </div>
+            <div className="mt-4">
+              {waitingForOpponent ? (
+                <div className="animate-pulse">
+                  <div className="w-16 h-16 mx-auto mb-2 border-2 border-dashed border-neo-black rounded-full flex items-center justify-center">
+                    <span className="text-2xl">?</span>
+                  </div>
+                  <p className="text-sm font-mono text-gray-500 italic">Waiting...</p>
+                </div>
+              ) : (
+                <>
+                  <HiUser className="text-6xl mx-auto mb-2 text-neo-black" />
+                  <p className="text-xl font-bold font-mono text-neo-black truncate">
+                    {room?.player2?.username}
+                  </p>
+                  {isPlayer2 && <span className="inline-block mt-2 px-2 py-0.5 bg-neo-black text-neo-white text-xs font-bold uppercase">YOU</span>}
+                </>
+              )}
+            </div>
           </div>
         </div>
 
-        {error && <div className="error-message mb-4">{error}</div>}
+        {error && <div className="bg-red-100 border-2 border-red-500 text-red-700 p-3 mb-6 font-mono text-sm font-bold text-center">{error}</div>}
 
-        {waitingForOpponent ? (
-          <div className="text-center py-6">
-            <div className="loading-spinner mx-auto mb-4"></div>
-            <p className="mb-4 text-gray-600">Share the room code with a friend or wait for a match</p>
-            <button onClick={() => navigate("/")} className="btn btn-secondary">
-              Cancel
-            </button>
-          </div>
-        ) : (
-          <div className="text-center py-6">
-            <p className="mb-4 text-lg text-gray-700">Both players ready!</p>
-            {isPlayer1 && (
-              <button onClick={handleStartGame} className="btn btn-primary">
-                Start Game
+        <div className="text-center">
+          {waitingForOpponent ? (
+            <div className="space-y-4">
+              <div className="flex items-center justify-center gap-2 font-mono text-neo-black">
+                <span className="animate-spin">⟳</span>
+                <span>Waiting for opponent to join...</span>
+              </div>
+              <p className="text-sm font-mono text-gray-600">Share room code: <span className="font-bold select-all">{roomId}</span></p>
+              <button onClick={() => navigate("/")} className="btn btn-outline border-2 border-neo-black hover:bg-neo-black hover:text-neo-white">
+                CANCEL
               </button>
-            )}
-            {!isPlayer1 && <p className="text-gray-600">Waiting for host to start the game...</p>}
-          </div>
-        )}
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <p className="text-xl font-pixel text-neo-green mb-4">READY TO FIGHT!</p>
+              {isPlayer1 ? (
+                <button 
+                  onClick={handleStartGame} 
+                  className="btn btn-primary text-lg px-10 py-4 shadow-neo hover:shadow-neo-lg hover:-translate-y-1"
+                >
+                  START BATTLE
+                </button>
+              ) : (
+                <p className="font-mono text-neo-black animate-pulse">Waiting for host to start...</p>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
 };
 
 export default Lobby;
-

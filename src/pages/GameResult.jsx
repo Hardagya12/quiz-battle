@@ -2,6 +2,9 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import api from "../utils/api";
+import RetroBackground from "../components/RetroBackground";
+import Sidebar from "../components/Sidebar";
+import { HiShare, HiHome, HiRefresh } from "react-icons/hi";
 
 const GameResult = () => {
   const { roomId } = useParams();
@@ -33,19 +36,23 @@ const GameResult = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-8 bg-gradient-to-br from-indigo-500 via-purple-500 to-purple-600">
-        <div className="loading">Loading results...</div>
+      <div className="min-h-screen flex items-center justify-center p-8 relative overflow-hidden">
+        <RetroBackground />
+        <Sidebar />
+        <div className="relative z-10 text-neo-black font-pixel text-2xl animate-pulse">LOADING RESULTS...</div>
       </div>
     );
   }
 
   if (!result) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-8 bg-gradient-to-br from-indigo-500 via-purple-500 to-purple-600">
-        <div className="bg-white p-8 rounded-2xl shadow-2xl max-w-md w-full text-center">
-          <div className="error-message mb-4">Result not found</div>
-          <button onClick={() => navigate("/")} className="btn btn-primary">
-            Go Home
+      <div className="min-h-screen flex items-center justify-center p-8 relative overflow-hidden">
+        <RetroBackground />
+        <Sidebar />
+        <div className="bg-neo-white p-8 border-3 border-neo-black shadow-neo-xl max-w-md w-full text-center relative z-10">
+          <div className="text-neo-primary font-bold font-mono mb-4">RESULT NOT FOUND</div>
+          <button onClick={() => navigate("/")} className="btn btn-primary w-full">
+            GO HOME
           </button>
         </div>
       </div>
@@ -83,149 +90,123 @@ const GameResult = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-8 bg-gradient-to-br from-indigo-500 via-purple-500 to-purple-600">
-      <div className="bg-white rounded-2xl p-8 max-w-2xl w-full shadow-2xl text-center">
+    <div className="min-h-screen flex items-center justify-center p-8 relative overflow-hidden">
+      <RetroBackground />
+      <Sidebar />
+      
+      <div className="bg-neo-white border-3 border-neo-black shadow-neo-xl p-8 max-w-3xl w-full relative z-10 text-center">
         <div
-          className={`p-8 rounded-xl mb-8 ${
+          className={`p-8 border-3 border-neo-black shadow-neo mb-8 ${
             isWinner || raidSuccess
-              ? "bg-gradient-to-br from-green-500 to-green-600 text-white"
+              ? "bg-neo-green text-neo-black"
               : winner
-              ? "bg-gradient-to-br from-red-500 to-red-600 text-white"
-              : "bg-gradient-to-br from-gray-500 to-gray-600 text-white"
+              ? "bg-neo-primary text-white"
+              : "bg-gray-200 text-neo-black"
           }`}
         >
           {matchType === "raid" ? (
             raidSuccess ? (
               <>
-                <h1 className="text-4xl font-bold mb-2">🛡️ Raid Cleared!</h1>
-                <p className="text-xl">The Quiz Titan has been defeated.</p>
+                <h1 className="text-4xl font-bold font-pixel mb-2">🛡️ RAID CLEARED!</h1>
+                <p className="text-xl font-mono font-bold uppercase">The Quiz Titan has been defeated.</p>
               </>
             ) : (
               <>
-                <h1 className="text-4xl font-bold mb-2">💥 Raid Failed</h1>
-                <p className="text-xl">The boss survived. Regroup and try again!</p>
+                <h1 className="text-4xl font-bold font-pixel mb-2">💥 RAID FAILED</h1>
+                <p className="text-xl font-mono font-bold uppercase">The boss survived. Regroup and try again!</p>
               </>
             )
           ) : isWinner ? (
             <>
-              <h1 className="text-4xl font-bold mb-2">🎉 You Won! 🎉</h1>
-              <p className="text-xl">Congratulations on your victory!</p>
+              <h1 className="text-4xl font-bold font-pixel mb-2">🎉 VICTORY! 🎉</h1>
+              <p className="text-xl font-mono font-bold uppercase">Congratulations on your win!</p>
             </>
           ) : winner ? (
             <>
-              <h1 className="text-4xl font-bold mb-2">😔 You Lost</h1>
-              <p className="text-xl">Better luck next time!</p>
+              <h1 className="text-4xl font-bold font-pixel mb-2">😔 DEFEAT</h1>
+              <p className="text-xl font-mono font-bold uppercase">Better luck next time!</p>
             </>
           ) : (
             <>
-              <h1 className="text-4xl font-bold mb-2">🤝 It's a Tie!</h1>
-              <p className="text-xl">Great game!</p>
+              <h1 className="text-4xl font-bold font-pixel mb-2">🤝 DRAW!</h1>
+              <p className="text-xl font-mono font-bold uppercase">It's a tie game!</p>
             </>
           )}
         </div>
 
         {matchType === "raid" ? (
-          <div className="flex flex-col md:flex-row items-center justify-around mb-8 p-6 bg-gray-50 rounded-xl gap-4">
+          <div className="flex flex-col md:flex-row items-center justify-around mb-8 p-6 bg-neo-bg border-3 border-neo-black shadow-neo gap-4">
             <div className="text-center">
-              <h3 className="mb-2 text-sm text-gray-600 uppercase font-semibold">Team Damage</h3>
-              <p className="text-4xl font-bold text-indigo-500">{raidDamage}</p>
+              <h3 className="mb-2 text-xs font-bold font-mono text-gray-600 uppercase">Team Damage</h3>
+              <p className="text-4xl font-bold font-pixel text-neo-primary">{raidDamage}</p>
             </div>
-            <div className="text-2xl font-bold text-gray-500 px-4">vs</div>
+            <div className="text-2xl font-bold font-pixel text-neo-black px-4">VS</div>
             <div className="text-center">
-              <h3 className="mb-2 text-sm text-gray-600 uppercase font-semibold">Boss HP</h3>
-              <p className="text-4xl font-bold text-red-500">{raidBossHp}</p>
+              <h3 className="mb-2 text-xs font-bold font-mono text-gray-600 uppercase">Boss HP</h3>
+              <p className="text-4xl font-bold font-pixel text-neo-primary">{raidBossHp}</p>
             </div>
           </div>
         ) : (
-          <div className="flex items-center justify-around mb-8 p-6 bg-gray-50 rounded-xl">
+          <div className="flex items-center justify-around mb-8 p-6 bg-neo-bg border-3 border-neo-black shadow-neo">
             <div className="text-center">
-              <h3 className="mb-2 text-sm text-gray-600 uppercase font-semibold">Your Score</h3>
-              <p className="text-4xl font-bold text-indigo-500">{userScore}</p>
+              <h3 className="mb-2 text-xs font-bold font-mono text-gray-600 uppercase">Your Score</h3>
+              <p className="text-4xl font-bold font-pixel text-neo-primary">{userScore}</p>
             </div>
-            <div className="text-2xl font-bold text-gray-500 px-4">VS</div>
+            <div className="text-2xl font-bold font-pixel text-neo-black px-4">VS</div>
             <div className="text-center">
-              <h3 className="mb-2 text-sm text-gray-600 uppercase font-semibold">Opponent Score</h3>
-              <p className="text-4xl font-bold text-indigo-500">{opponentScore}</p>
+              <h3 className="mb-2 text-xs font-bold font-mono text-gray-600 uppercase">Opponent</h3>
+              <p className="text-4xl font-bold font-pixel text-gray-600">{opponentScore}</p>
             </div>
           </div>
         )}
 
         {gameHistory && (
-          <div className="bg-gray-50 p-6 rounded-xl mb-8 text-left">
-            <h3 className="mb-4 text-xl font-semibold text-gray-800">Game Details</h3>
-            <div className="space-y-2 text-gray-600">
-              <p><strong>Duration:</strong> {gameHistory.duration}s</p>
-              <p><strong>Category:</strong> {gameHistory.category}</p>
-              <p><strong>Questions:</strong> {gameHistory.questions?.length || 10}</p>
+          <div className="bg-neo-white p-6 border-3 border-neo-black shadow-neo mb-8 text-left">
+            <h3 className="mb-4 text-xl font-bold font-pixel text-neo-black">GAME DETAILS</h3>
+            <div className="space-y-2 text-neo-black font-mono text-sm">
+              <p><strong>DURATION:</strong> {gameHistory.duration}s</p>
+              <p><strong>CATEGORY:</strong> {gameHistory.category}</p>
+              <p><strong>QUESTIONS:</strong> {gameHistory.questions?.length || 10}</p>
               {gameHistory.highlights && (
-                <p><strong>Margin:</strong> {gameHistory.highlights.margin} pts</p>
+                <p><strong>MARGIN:</strong> {gameHistory.highlights.margin} pts</p>
               )}
             </div>
             <div className="mt-4 flex flex-wrap gap-3">
-              <button onClick={handleCopyShare} className="btn btn-sm btn-outline">
-                {shareCopied ? "Copied!" : "Share Highlight"}
+              <button onClick={handleCopyShare} className="btn btn-outline border-2 border-neo-black text-xs px-3 py-2 flex items-center gap-2 hover:bg-neo-black hover:text-neo-white">
+                <HiShare /> {shareCopied ? "COPIED!" : "SHARE HIGHLIGHT"}
               </button>
-              <button onClick={() => navigate(`/lobby/${roomId}`)} className="btn btn-sm btn-primary">
-                Rematch Lobby
+              <button onClick={() => navigate(`/lobby/${roomId}`)} className="btn btn-primary text-xs px-3 py-2 flex items-center gap-2 shadow-neo-sm hover:translate-y-1 hover:shadow-none">
+                <HiRefresh /> REMATCH LOBBY
               </button>
             </div>
           </div>
         )}
 
-        {gameHistory?.questions && (
-          <div className="bg-white border border-gray-100 rounded-xl p-6 mb-8 text-left max-h-80 overflow-auto">
-            <h3 className="text-xl font-semibold text-gray-800 mb-4">Question Breakdown</h3>
-            <div className="space-y-3">
-              {gameHistory.questions.map((question, index) => (
-                <div key={question._id || index} className="border border-gray-100 rounded-lg p-3">
-                  <p className="text-sm font-semibold text-gray-700 mb-2">Question {index + 1}</p>
-                  <div className="grid grid-cols-2 gap-3 text-sm">
-                    <div className="p-2 rounded bg-indigo-50">
-                      <p className="text-xs uppercase text-gray-500">Player 1</p>
-                      <p className="font-semibold text-gray-800">{question.player1Answer.points} pts</p>
-                      <p className="text-xs text-gray-500">
-                        {question.player1Answer.usedPowerup ? `Power-up: ${question.player1Answer.usedPowerup}` : "No power-up"}
-                      </p>
-                    </div>
-                    <div className="p-2 rounded bg-yellow-50">
-                      <p className="text-xs uppercase text-gray-500">Player 2</p>
-                      <p className="font-semibold text-gray-800">{question.player2Answer.points} pts</p>
-                      <p className="text-xs text-gray-500">
-                        {question.player2Answer.usedPowerup ? `Power-up: ${question.player2Answer.usedPowerup}` : "No power-up"}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        <div className="bg-white rounded-xl border border-gray-100 p-6 mb-8">
-          <h3 className="text-xl font-semibold text-gray-800 mb-4">Drop a Reaction</h3>
-          <div className="flex gap-3 justify-center">
+        <div className="bg-neo-white border-3 border-neo-black shadow-neo p-6 mb-8">
+          <h3 className="text-xl font-bold font-pixel text-neo-black mb-4">REACT</h3>
+          <div className="flex gap-4 justify-center">
             {["🔥", "😂", "👏", "🤯"].map((emoji) => (
               <button
                 key={emoji}
                 onClick={() => setReaction(emoji)}
-                className={`text-3xl transition-transform ${reaction === emoji ? "scale-110" : "opacity-70 hover:opacity-100"}`}
+                className={`text-4xl transition-transform hover:scale-125 ${reaction === emoji ? "scale-125 drop-shadow-md" : "opacity-80 hover:opacity-100"}`}
               >
                 {emoji}
               </button>
             ))}
           </div>
-          {reaction && <p className="text-sm text-gray-500 mt-3">Thanks! Reaction saved locally.</p>}
+          {reaction && <p className="text-xs font-bold font-mono text-neo-primary mt-3 uppercase">Reaction saved!</p>}
         </div>
 
         <div className="flex gap-4 justify-center flex-wrap">
-          <button onClick={() => navigate("/")} className="btn btn-primary">
-            Play Again
+          <button onClick={() => navigate("/")} className="btn btn-primary px-6 py-3 text-lg shadow-neo hover:shadow-neo-lg hover:-translate-y-1">
+            PLAY AGAIN
           </button>
-          <button onClick={() => navigate("/history")} className="btn btn-outline">
-            View History
+          <button onClick={() => navigate("/history")} className="btn btn-outline border-2 border-neo-black px-6 py-3 hover:bg-neo-black hover:text-neo-white">
+            HISTORY
           </button>
-          <button onClick={() => navigate("/leaderboard")} className="btn btn-outline">
-            Leaderboard
+          <button onClick={() => navigate("/leaderboard")} className="btn btn-outline border-2 border-neo-black px-6 py-3 hover:bg-neo-black hover:text-neo-white">
+            LEADERBOARD
           </button>
         </div>
       </div>
@@ -234,4 +215,3 @@ const GameResult = () => {
 };
 
 export default GameResult;
-

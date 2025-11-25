@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import RetroBackground from "../components/RetroBackground";
+import Sidebar from "../components/Sidebar";
 
 const Register = () => {
   const [username, setUsername] = useState("");
@@ -38,14 +40,21 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-8 bg-gradient-to-br from-indigo-500 via-purple-500 to-purple-600">
-      <div className="bg-white p-10 rounded-2xl shadow-2xl w-full max-w-md">
-        <h1 className="text-center text-indigo-500 mb-2 text-3xl font-bold">Quiz Battle</h1>
-        <h2 className="text-center text-gray-800 mb-8 text-2xl font-semibold">Register</h2>
-        {error && <div className="error-message">{error}</div>}
+    <div className="min-h-screen flex items-center justify-center p-8 relative overflow-hidden">
+      <RetroBackground />
+      <Sidebar />
+      
+      <div className="bg-neo-white p-10 w-full max-w-md relative z-10 border-3 border-neo-black shadow-neo-xl">
+        <header className="text-center mb-8">
+          <h1 className="text-neo-black mb-2 text-4xl font-bold font-pixel">Quiz Battle</h1>
+          <h2 className="text-neo-black text-xl font-mono font-bold uppercase">Join the Arena</h2>
+        </header>
+        
+        {error && <div className="error-message font-mono text-sm">{error}</div>}
+        
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label htmlFor="username">Username</label>
+            <label htmlFor="username" className="font-mono uppercase text-sm">Username</label>
             <input
               type="text"
               id="username"
@@ -55,10 +64,11 @@ const Register = () => {
               minLength={3}
               maxLength={20}
               disabled={loading}
+              className="neo-input"
             />
           </div>
           <div className="form-group">
-            <label htmlFor="email">Email</label>
+            <label htmlFor="email" className="font-mono uppercase text-sm">Email</label>
             <input
               type="email"
               id="email"
@@ -66,10 +76,11 @@ const Register = () => {
               onChange={(e) => setEmail(e.target.value)}
               required
               disabled={loading}
+              className="neo-input"
             />
           </div>
           <div className="form-group">
-            <label htmlFor="password">Password</label>
+            <label htmlFor="password" className="font-mono uppercase text-sm">Password</label>
             <input
               type="password"
               id="password"
@@ -78,10 +89,11 @@ const Register = () => {
               required
               minLength={6}
               disabled={loading}
+              className="neo-input"
             />
           </div>
           <div className="form-group">
-            <label htmlFor="confirmPassword">Confirm Password</label>
+            <label htmlFor="confirmPassword" className="font-mono uppercase text-sm">Confirm Password</label>
             <input
               type="password"
               id="confirmPassword"
@@ -89,14 +101,16 @@ const Register = () => {
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
               disabled={loading}
+              className="neo-input"
             />
           </div>
-          <button type="submit" disabled={loading} className="btn btn-primary w-full">
+          <button type="submit" disabled={loading} className="btn btn-primary w-full shadow-neo hover:shadow-neo-sm hover:translate-x-1 hover:translate-y-1 transition-all">
             {loading ? "Registering..." : "Register"}
           </button>
         </form>
-        <p className="text-center mt-6 text-gray-600">
-          Already have an account? <Link to="/login" className="text-indigo-500 font-semibold hover:underline">Login here</Link>
+        
+        <p className="text-center mt-6 text-neo-black font-mono text-sm">
+          Already have an account? <Link to="/login" className="text-neo-primary font-bold hover:underline">Login here</Link>
         </p>
       </div>
     </div>
@@ -104,4 +118,3 @@ const Register = () => {
 };
 
 export default Register;
-

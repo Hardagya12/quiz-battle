@@ -1,13 +1,16 @@
-// Home.jsx
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useSocket } from "../context/SocketContext";
 import api from "../utils/api";
 import { CATEGORIES, MATCH_TYPES, POWER_UPS, TIERS } from "../utils/constants";
-
-// Framer Motion for extra buttery smooth motion effects (optional but recommended)
 import { motion, AnimatePresence } from "framer-motion";
+import RetroBackground from "../components/RetroBackground";
+import Sidebar from "../components/Sidebar";
+import { IoLogOutOutline } from "react-icons/io5";
+import { HiSparkles, HiBolt, HiKey, HiFire } from "react-icons/hi2";
+import { BiLoaderAlt, BiTargetLock } from "react-icons/bi";
+import { MdEventAvailable } from "react-icons/md";
 
 export default function Home() {
   const { user, logout } = useAuth();
@@ -24,6 +27,7 @@ export default function Home() {
   const [events, setEvents] = useState([]);
   const [quests, setQuests] = useState([]);
   const [isStartingQuickMatch, setIsStartingQuickMatch] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
 
   const userTier = useMemo(() => {
     const tierName = user?.stats?.rating?.tier || "Bronze";
@@ -31,6 +35,7 @@ export default function Home() {
   }, [user]);
 
   const powerUpInventory = useMemo(() => user?.powerUps || [], [user]);
+
   useEffect(() => {
     const loadHomeMeta = async () => {
       try {
@@ -77,10 +82,6 @@ export default function Home() {
     };
   }, [socket, navigate]);
 
-  // Add-on: animated confetti for "Start a Battle" call to action
-  const [showConfetti, setShowConfetti] = useState(false);
-
-  //— Handlers (unchanged from your backend logic) —//
   const handleCreateRoom = async () => {
     setLoading(true);
     setError();
@@ -99,6 +100,7 @@ export default function Home() {
       setLoading(false);
     }
   };
+
   const handleJoinRoom = async () => {
     if (!roomCode.trim()) {
       setError("Please enter a room code");
@@ -118,6 +120,7 @@ export default function Home() {
       setLoading(false);
     }
   };
+
   const handleFindMatch = () => {
     if (!socket) {
       setError("Socket not connected");
@@ -128,6 +131,7 @@ export default function Home() {
     setError();
     socket.emit("find-match", { userId: user.id, category: selectedCategory, matchType });
   };
+
   const handleCancelMatchmaking = () => {
     if (socket) {
       socket.emit("cancel-matchmaking", { userId: user.id });
@@ -135,288 +139,244 @@ export default function Home() {
     setMatchmaking(false);
   };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-[#FDE68A] via-[#FFC700] to-[#F59E00] flex flex-col">
-      {/* Navbar */}
-      <nav className="flex items-center justify-between py-5 px-7 bg-white bg-opacity-75 shadow-lg">
-        <motion.h1 layout className="font-bold text-3xl text-[#FFB300] drop-shadow-lg tracking-tight">
-          Quiz Battle
-        </motion.h1>
-        <div className="flex items-center gap-6 flex-wrap justify-end">
-          <div className="text-right">
-            <span className="font-semibold text-gray-800 block">
-              Welcome, <span className="text-[#FFC700]">{user?.username}</span>
-            </span>
-            <span className="text-xs text-gray-500">
-              Tier{" "}
-              <span className="font-semibold" style={{ color: userTier.color }}>
-                {userTier.name}
-              </span>{" "}
-              • MMR {Math.round(user?.stats?.rating?.overall ?? 1200)}
-            </span>
-          </div>
-          <div className="hidden sm:flex gap-4 text-sm items-center">
-            <span className="badge badge-success">Wins: {user?.stats?.wins ?? 0}</span>
-            <span className="badge badge-error">Losses: {user?.stats?.losses ?? 0}</span>
-            <span className="badge badge-info capitalize">{matchType}</span>
-          </div>
-          <button onClick={() => navigate("/profile")} className="btn btn-outline">Profile</button>
-          <button onClick={logout} className="btn bg-[#FFB300] hover:bg-[#FFD24C] text-white rounded-lg shadow transition">Logout</button>
-        </div>
-      </nav>
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.2,
+      },
+    },
+  };
 
-      {/* Main Content */}
-      <main className="flex-1 flex flex-col items-center justify-center px-1 sm:px-8 pb-10">
-        {/* Confetti Animation */}
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: {
+      y: 0,
+      opacity: 1,
+      transition: {
+        type: "spring",
+        stiffness: 100,
+        damping: 15,
+      },
+    },
+  };
+
+  return (
+    <div className="min-h-screen relative overflow-hidden">
+      <RetroBackground />
+      <Sidebar />
+
+      {/* Header */}
+      <header className="relative z-50 bg-neo-white border-b-3 border-neo-black shadow-neo">
+        <nav className="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
+          <motion.h1
+            className="font-pixel text-2xl md:text-3xl text-neo-black"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            QUIZ BATTLE
+          </motion.h1>
+
+          <div className="flex items-center gap-4">
+            <div className="hidden sm:block text-right">
+              <p className="font-bold font-mono text-neo-black text-sm mb-1 uppercase">
+                {user?.username}
+              </p>
+              <div className="flex items-center gap-2 justify-end">
+                <span className="px-2 py-0.5 border-2 border-neo-black text-xs font-bold bg-neo-accent text-neo-black">
+                  {userTier.name}
+                </span>
+                <span className="text-xs font-mono font-bold text-neo-black">
+                  {Math.round(user?.stats?.rating?.overall ?? 1200)} MMR
+                </span>
+              </div>
+            </div>
+            <button onClick={logout} className="btn btn-outline px-4 py-2 text-sm flex items-center gap-2 border-2 border-neo-black hover:bg-neo-black hover:text-neo-white">
+              <IoLogOutOutline className="text-lg" />
+              LOGOUT
+            </button>
+          </div>
+        </nav>
+      </header>
+
+      {/* Main */}
+      <main className="relative z-10 max-w-7xl mx-auto px-6 py-8">
         <AnimatePresence>
           {showConfetti && (
             <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8 }}
-              className="fixed inset-0 z-50 pointer-events-none flex justify-center items-center"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 pointer-events-none z-50 flex items-center justify-center"
             >
-              <img src="https://svgur.com/i/15JP.svg" alt="Confetti" className="w-72 h-72 animate-bounce" />
+              <div className="text-6xl animate-bounce">🎉</div>
             </motion.div>
           )}
         </AnimatePresence>
 
-        <div className="w-full max-w-2xl bg-white bg-opacity-90 backdrop-blur rounded-xl shadow-2xl py-8 px-6 md:px-12 mt-10">
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.04 }}
-            className="text-2xl md:text-4xl font-extrabold text-[#FFB300] text-center mb-5"
-          >
-            Start a Battle
-          </motion.h2>
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          className="grid grid-cols-1 lg:grid-cols-3 gap-8"
+        >
+          {/* Left Column: Game Modes */}
+          <div className="lg:col-span-2 space-y-8">
+            {/* Quick Play Section */}
+            <motion.section variants={itemVariants} className="bg-neo-white border-3 border-neo-black shadow-neo-xl p-6 relative overflow-hidden">
+              <div className="absolute top-0 right-0 p-4 opacity-10">
+                 <HiBolt className="text-9xl text-neo-black" />
+              </div>
+              
+              <h2 className="text-2xl font-pixel text-neo-black mb-6 flex items-center gap-3">
+                <HiBolt className="text-neo-primary" />
+                QUICK PLAY
+              </h2>
 
-          {error && (
-            <motion.div
-              layout
-              initial={{ y: 30, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              className="bg-[#FFF3CD] text-[#92400E] p-3 mb-4 rounded shadow border border-yellow-300 text-center"
-            >
-              {error}
-            </motion.div>
-          )}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div className="form-group">
+                    <label className="font-mono font-bold uppercase text-sm">Category</label>
+                    <select
+                      value={selectedCategory}
+                      onChange={(e) => setSelectedCategory(e.target.value)}
+                      className="neo-input"
+                    >
+                      {CATEGORIES.map((cat) => (
+                        <option key={cat} value={cat}>{cat}</option>
+                      ))}
+                    </select>
+                  </div>
 
-          <fieldset className="mb-5">
-            <label htmlFor="categorySelect" className="block text-base font-semibold mb-1 text-gray-700">Category</label>
-            <select
-              id="categorySelect"
-              value={selectedCategory}
-              onChange={e => setSelectedCategory(e.target.value)}
-              className="w-full py-2.5 px-4 border-2 border-yellow-200 rounded-lg focus:border-[#FFB300] font-medium"
-              disabled={matchmaking || loading}
-            >
-              {CATEGORIES.map(cat => (
-                <option key={cat} value={cat}>{cat}</option>
-              ))}
-            </select>
-          </fieldset>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-            {MATCH_TYPES.map((mode) => (
-              <button
-                key={mode.id}
-                onClick={() => setMatchType(mode.id)}
-                className={`p-4 rounded-xl border-2 transition-all text-left ${
-                  matchType === mode.id
-                    ? "border-[#FFB300] bg-[#FFF0C2] shadow-lg"
-                    : "border-yellow-100 bg-white"
-                }`}
-                disabled={matchmaking || loading || mode.comingSoon}
-              >
-                <p className="text-xs uppercase text-gray-500 font-semibold">{mode.title}</p>
-                <p className="text-lg font-bold text-gray-800 mb-1">{mode.description}</p>
-                <span className="text-xs text-gray-500">
-                  {mode.comingSoon ? "Coming soon" : `Up to ${mode.maxPlayers} players`}
-                </span>
-              </button>
-            ))}
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Quick Match */}
-            <motion.div
-              initial={{ opacity: 0.7, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              whileHover={{ scale: 1.05, boxShadow: "0 8px 28px -4px #FFB30066" }}
-              className="bg-[#FFF6E0] rounded-xl border-2 border-[#FFD24C] shadow-md p-5 flex flex-col items-center transition-all"
-            >
-              <h3 className="font-bold text-[#FFB300] text-lg mb-1">Quick Match</h3>
-              <p className="text-xs text-gray-600 mb-3">Find an opponent instantly</p>
-              {matchmaking ? (
-                <div className="flex flex-col items-center">
-                  <div className="loader border-4 border-yellow-200 border-t-[#FFC700] rounded-full w-10 h-10 animate-spin mb-2"></div>
-                  <p className="text-xs text-[#FFB300]">Searching for opponent...</p>
-                  <button
-                    onClick={handleCancelMatchmaking}
-                    className="mt-3 btn bg-yellow-100 text-yellow-800 px-3 py-1 rounded hover:bg-yellow-200 transition"
-                  >
-                    Cancel
-                  </button>
+                  <div className="form-group">
+                    <label className="font-mono font-bold uppercase text-sm">Mode</label>
+                    <div className="flex gap-2">
+                      {MATCH_TYPES.map((type) => (
+                        <button
+                          key={type.id}
+                          onClick={() => setMatchType(type.id)}
+                          className={`flex-1 py-2 border-3 border-neo-black font-bold text-sm uppercase transition-all ${
+                            matchType === type.id
+                              ? "bg-neo-black text-neo-white"
+                              : "bg-neo-white text-neo-black hover:bg-gray-100"
+                          }`}
+                        >
+                          {type.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
-              ) : (
+
+                <div className="flex flex-col justify-end space-y-3">
+                  {matchmaking ? (
+                    <div className="text-center p-4 bg-neo-bg border-3 border-neo-black animate-pulse">
+                      <p className="font-pixel text-sm mb-2">SEARCHING...</p>
+                      <button 
+                        onClick={handleCancelMatchmaking}
+                        className="text-red-500 font-bold hover:underline text-sm"
+                      >
+                        CANCEL
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <button
+                        onClick={handleFindMatch}
+                        disabled={loading}
+                        className="btn btn-primary w-full py-4 text-lg shadow-neo hover:shadow-neo-lg hover:-translate-y-1"
+                      >
+                        FIND MATCH
+                      </button>
+                      <button
+                        onClick={handleCreateRoom}
+                        disabled={loading}
+                        className="btn btn-secondary w-full"
+                      >
+                        CREATE ROOM
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+            </motion.section>
+
+            {/* Join Room Section */}
+            <motion.section variants={itemVariants} className="bg-neo-white border-3 border-neo-black shadow-neo p-6">
+              <h2 className="text-xl font-pixel text-neo-black mb-4 flex items-center gap-3">
+                <HiKey className="text-neo-secondary" />
+                JOIN ROOM
+              </h2>
+              <div className="flex gap-4">
+                <input
+                  type="text"
+                  placeholder="ENTER CODE"
+                  value={roomCode}
+                  onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
+                  className="neo-input flex-1 uppercase tracking-widest"
+                  maxLength={6}
+                />
                 <button
-                  onClick={handleFindMatch}
-                  className="btn bg-[#FFB300] hover:bg-[#FFF6E0] text-white w-full font-semibold py-2 rounded-lg shadow transition"
-                  disabled={loading}
+                  onClick={handleJoinRoom}
+                  disabled={loading || !roomCode}
+                  className="btn btn-accent"
                 >
-                  {isStartingQuickMatch ? "Pairing..." : "Find Match"}
+                  JOIN
                 </button>
-              )}
-            </motion.div>
-
-            {/* Create Room */}
-            <motion.div
-              initial={{ opacity: 0.7, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              whileHover={{ scale: 1.05, boxShadow: "0 8px 28px -4px #FFB30066" }}
-              className="bg-[#FFF6E0] rounded-xl border-2 border-[#FFD24C] shadow-md p-5 flex flex-col items-center transition-all"
-            >
-              <h3 className="font-bold text-[#FFB300] text-lg mb-1">Create Room</h3>
-              <p className="text-xs text-gray-600 mb-3">Create a room and share the code</p>
-              <button
-                onClick={handleCreateRoom}
-                className="btn bg-[#FFC700] hover:bg-[#FFD24C] text-white w-full font-semibold py-2 rounded-lg shadow transition"
-                disabled={loading || matchmaking}
-              >
-                {loading ? "Creating..." : "Create Room"}
-              </button>
-            </motion.div>
-
-            {/* Join Room */}
-            <motion.div
-              initial={{ opacity: 0.7, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              whileHover={{ scale: 1.05, boxShadow: "0 8px 28px -4px #FFB30066" }}
-              className="bg-[#FFF6E0] rounded-xl border-2 border-[#FFD24C] shadow-md p-5 flex flex-col items-center transition-all"
-            >
-              <h3 className="font-bold text-[#FFB300] text-lg mb-1">Join Room</h3>
-              <p className="text-xs text-gray-600 mb-3">Enter a room code to join</p>
-              <input
-                type="text"
-                placeholder="Enter room code"
-                value={roomCode}
-                onChange={e => setRoomCode(e.target.value.toUpperCase())}
-                maxLength={6}
-                disabled={loading || matchmaking}
-                className="w-full py-2 px-4 border-2 border-yellow-200 rounded focus:border-[#FFB300] font-semibold mb-2"
-              />
-              <button
-                onClick={handleJoinRoom}
-                className="btn bg-[#FFC700] hover:bg-[#FFD24C] text-white w-full font-semibold py-2 rounded-lg shadow transition"
-                disabled={loading || matchmaking}
-              >
-                {loading ? "Joining..." : "Join Room"}
-              </button>
-            </motion.div>
+              </div>
+              {error && <p className="mt-2 text-red-500 font-bold text-sm">{error}</p>}
+            </motion.section>
           </div>
 
-          {trendingCategories.length > 0 && (
-            <div className="mt-8">
-              <p className="text-xs font-semibold text-gray-500 uppercase mb-2">Trending Categories</p>
+          {/* Right Column: Stats & Events */}
+          <div className="space-y-8">
+            {/* Daily Quests */}
+            <motion.section variants={itemVariants} className="bg-neo-white border-3 border-neo-black shadow-neo p-6">
+              <h3 className="font-pixel text-lg mb-4 flex items-center gap-2">
+                <BiTargetLock className="text-neo-accent" />
+                DAILY QUESTS
+              </h3>
+              <div className="space-y-4">
+                {quests.length > 0 ? (
+                  quests.map((quest, i) => (
+                    <div key={i} className="border-2 border-neo-black p-3 bg-neo-bg">
+                      <div className="flex justify-between mb-1">
+                        <span className="font-bold text-sm">{quest.description}</span>
+                        <span className="text-xs font-mono">{quest.progress}/{quest.target}</span>
+                      </div>
+                      <div className="w-full bg-white border border-neo-black h-2">
+                        <div 
+                          className="bg-neo-green h-full" 
+                          style={{ width: `${(quest.progress / quest.target) * 100}%` }}
+                        />
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-gray-500 font-mono">No active quests.</p>
+                )}
+              </div>
+            </motion.section>
+
+            {/* Trending */}
+            <motion.section variants={itemVariants} className="bg-neo-white border-3 border-neo-black shadow-neo p-6">
+              <h3 className="font-pixel text-lg mb-4 flex items-center gap-2">
+                <HiFire className="text-orange-500" />
+                TRENDING
+              </h3>
               <div className="flex flex-wrap gap-2">
-                {trendingCategories.map((item) => (
-                  <span
-                    key={item.category}
-                    className="px-3 py-1 rounded-full bg-gray-100 text-gray-700 text-xs font-semibold"
-                  >
-                    {item.category} · {item.score}
+                {trendingCategories.map((cat, i) => (
+                  <span key={i} className="px-3 py-1 bg-neo-bg border-2 border-neo-black text-xs font-bold uppercase hover:bg-neo-accent cursor-pointer transition-colors">
+                    #{cat}
                   </span>
                 ))}
               </div>
-            </div>
-          )}
-
-          {quests.length > 0 && (
-            <div className="mt-6 bg-[#FFF8E5] border border-yellow-200 rounded-xl p-4">
-              <div className="flex items-center justify-between mb-2">
-                <h4 className="text-gray-800 font-bold">Daily Quests</h4>
-                <span className="text-xs text-gray-500">Completing grants boosts</span>
-              </div>
-              <div className="grid gap-3">
-                {quests.map((quest) => {
-                  const progressPercent = Math.min(100, (quest.progress / quest.target) * 100);
-                  return (
-                    <div key={quest.id}>
-                      <div className="flex justify-between text-xs font-semibold text-gray-700 mb-1">
-                        <span>{quest.description}</span>
-                        <span>{quest.progress}/{quest.target}</span>
-                      </div>
-                      <div className="w-full bg-white rounded-full h-2">
-                        <div
-                          className={`h-2 rounded-full ${quest.completed ? "bg-green-500" : "bg-yellow-400"}`}
-                          style={{ width: `${progressPercent}%` }}
-                        ></div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {events.length > 0 && (
-            <div className="mt-8">
-              <div className="flex items-center justify-between mb-3">
-                <h4 className="text-gray-800 font-bold">Live Events</h4>
-                <button onClick={() => navigate("/events")} className="text-sm text-[#FFB300] font-semibold">
-                  View all
-                </button>
-              </div>
-              <div className="grid gap-4 md:grid-cols-2">
-                {events.map((event) => (
-                  <div key={event._id} className="p-4 border border-yellow-100 rounded-xl bg-white shadow">
-                    <p className="text-xs uppercase text-gray-500 font-semibold">{event.type}</p>
-                    <p className="text-lg font-bold text-gray-800 mb-1">{event.name}</p>
-                    <p className="text-sm text-gray-600 mb-2">{event.description}</p>
-                    <div className="flex justify-between text-xs text-gray-500">
-                      <span>Starts {new Date(event.startTime).toLocaleString()}</span>
-                      <span>{event.participants?.length ?? 0}/{event.maxParticipants}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          <div className="mt-8">
-            <h4 className="text-gray-800 font-bold mb-2">Power-Up Stash</h4>
-            <div className="grid gap-3 md:grid-cols-3">
-              {POWER_UPS.map((powerUp) => {
-                const owned = powerUpInventory.find((p) => p.type === powerUp.type);
-                return (
-                  <div
-                    key={powerUp.type}
-                    className={`rounded-xl p-4 text-white bg-gradient-to-r ${powerUp.color} shadow-lg`}
-                  >
-                    <p className="text-sm uppercase tracking-wide">{powerUp.label}</p>
-                    <p className="text-xs opacity-80 mb-2">{powerUp.description}</p>
-                    <p className="text-2xl font-extrabold">{owned?.quantity ?? 0}</p>
-                  </div>
-                );
-              })}
-            </div>
+            </motion.section>
           </div>
-
-          {/* Extra Links + User Stats */}
-          <div className="flex flex-wrap justify-center gap-3 mt-8">
-            <button onClick={() => navigate("/profile")} className="btn btn-outline">My Profile</button>
-            <button onClick={() => navigate("/leaderboard")} className="btn btn-outline">Leaderboard</button>
-            <button onClick={() => navigate("/history")} className="btn btn-outline">Game History</button>
-            <button onClick={() => navigate("/events")} className="btn btn-outline">Events</button>
-          </div>
-        </div>
+        </motion.div>
       </main>
-
-      {/* Example extra features/footer area */}
-      <footer className="w-full bg-[#FFF6E0] py-4 mt-auto shadow-inner text-center text-xs font-bold text-[#B28000] tracking-wide">
-        Powered by Quiz Battle — Built for speed, fun & competition.
-      </footer>
     </div>
   );
 }

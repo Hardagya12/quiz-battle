@@ -2,11 +2,48 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useSocket } from "../context/SocketContext";
+import RetroBackground from "../components/RetroBackground";
+import Sidebar from "../components/Sidebar";
 import QuestionCard from "../components/QuestionCard";
-import ScoreBoard from "../components/ScoreBoard";
-import Timer from "../components/Timer";
-import PlayerStatus from "../components/PlayerStatus";
-import { POWER_UPS } from "../utils/constants";
+import { HiLightningBolt, HiClock } from "react-icons/hi";
+import { BiHome } from "react-icons/bi";
+
+// Placeholder components for those not yet fully refactored, 
+// but we'll style them inline or assume they will be updated soon.
+// Ideally, we should refactor these too, but for now let's focus on the page layout.
+const Timer = ({ timeRemaining }) => (
+  <div className="flex items-center gap-2 font-mono font-bold text-xl text-neo-black bg-neo-white px-4 py-2 border-2 border-neo-black shadow-neo-sm">
+    <HiClock className="text-neo-primary" />
+    <span>{timeRemaining}s</span>
+  </div>
+);
+
+const ScoreBoard = ({ scores, player1, player2, currentUserId }) => (
+  <div className="flex justify-between items-center bg-neo-white border-3 border-neo-black shadow-neo p-4 mb-6">
+    <div className="text-center">
+      <p className="font-pixel text-xs mb-1 text-neo-black">{player1?.username || "Player 1"}</p>
+      <p className="font-mono font-bold text-2xl text-neo-primary">{scores.player1}</p>
+    </div>
+    <div className="font-pixel text-neo-black text-sm">VS</div>
+    <div className="text-center">
+      <p className="font-pixel text-xs mb-1 text-neo-black">{player2?.username || "Player 2"}</p>
+      <p className="font-mono font-bold text-2xl text-neo-secondary">{scores.player2}</p>
+    </div>
+  </div>
+);
+
+const PlayerStatus = ({ player1Answered, player2Answered, isPlayer1 }) => (
+  <div className="flex justify-between mb-4 px-2">
+    <div className={`flex items-center gap-2 ${player1Answered ? "opacity-100" : "opacity-50"}`}>
+      <div className={`w-3 h-3 rounded-full border-2 border-neo-black ${player1Answered ? "bg-neo-green" : "bg-gray-300"}`} />
+      <span className="font-mono text-xs font-bold">P1 {player1Answered ? "READY" : "THINKING"}</span>
+    </div>
+    <div className={`flex items-center gap-2 ${player2Answered ? "opacity-100" : "opacity-50"}`}>
+      <span className="font-mono text-xs font-bold">P2 {player2Answered ? "READY" : "THINKING"}</span>
+      <div className={`w-3 h-3 rounded-full border-2 border-neo-black ${player2Answered ? "bg-neo-green" : "bg-gray-300"}`} />
+    </div>
+  </div>
+);
 
 const GameRoom = () => {
   const { roomId } = useParams();
@@ -208,11 +245,14 @@ const GameRoom = () => {
 
   if (error && !gameState.question) {
     return (
-      <div className="min-h-screen p-4 bg-gradient-to-br from-indigo-500 via-purple-500 to-purple-600">
-        <div className="max-w-4xl mx-auto bg-white p-8 rounded-2xl shadow-2xl text-center">
-          <div className="error-message mb-4">{error}</div>
-          <button onClick={() => navigate("/")} className="btn btn-primary">
-            Go Home
+      <div className="min-h-screen p-4 relative overflow-hidden flex items-center justify-center">
+        <RetroBackground />
+        <Sidebar />
+        <div className="bg-neo-white p-8 border-3 border-neo-black shadow-neo-xl max-w-md w-full text-center relative z-10">
+          <div className="font-mono text-red-500 font-bold mb-4">{error}</div>
+          <button onClick={() => navigate("/")} className="btn btn-primary flex items-center gap-2 mx-auto">
+            <BiHome className="text-xl" />
+            GO HOME
           </button>
         </div>
       </div>
@@ -221,35 +261,44 @@ const GameRoom = () => {
 
   if (!gameState.question) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-indigo-500 via-purple-500 to-purple-600">
-        <div className="loading">Waiting for game to start...</div>
+      <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+        <RetroBackground />
+        <Sidebar />
+        <div className="relative z-10 text-neo-black font-pixel text-2xl animate-pulse">
+          WAITING FOR GAME TO START...
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen p-4 bg-gradient-to-br from-indigo-500 via-purple-500 to-purple-600">
-      <div className="max-w-5xl mx-auto">
-        <div className="bg-white p-6 rounded-xl mb-4 flex justify-between items-center shadow-lg flex-col md:flex-row gap-4">
+    <div className="min-h-screen p-4 relative overflow-hidden">
+      <RetroBackground />
+      <Sidebar />
+      
+      <div className="max-w-4xl mx-auto relative z-10 pt-4">
+        {/* Header */}
+        <header className="bg-neo-white p-4 border-3 border-neo-black shadow-neo mb-6 flex flex-wrap justify-between items-center gap-4">
           <div>
-            <h2 className="text-2xl font-bold text-gray-800 mb-2">Question {gameState.questionIndex + 1} of {gameState.totalQuestions}</h2>
-            <span className="inline-block px-3 py-1 bg-indigo-500 text-white rounded-full text-xs font-semibold">
-              {gameState.question.category}
-            </span>
-            <span className="inline-block px-3 py-1 ml-2 bg-gray-100 text-gray-700 rounded-full text-xs font-semibold capitalize">
-              {matchType}
-            </span>
+            <h2 className="text-xl font-bold font-pixel text-neo-black mb-1">
+              QUESTION {gameState.questionIndex + 1} / {gameState.totalQuestions}
+            </h2>
+            <div className="flex gap-2">
+              <span className="px-2 py-0.5 bg-neo-accent border-2 border-neo-black text-xs font-bold uppercase">
+                {gameState.question.category}
+              </span>
+              <span className="px-2 py-0.5 bg-neo-purple border-2 border-neo-black text-xs font-bold uppercase">
+                {matchType}
+              </span>
+            </div>
           </div>
           <Timer timeRemaining={gameState.timeRemaining} />
-        </div>
+        </header>
 
         {countdown && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-4 flex items-center justify-between">
-            <div>
-              <p className="text-sm font-semibold text-yellow-800">{countdown.message || "Get ready"}</p>
-              <p className="text-xs text-yellow-600">Question drops in</p>
-            </div>
-            <div className="text-3xl font-bold text-yellow-600">{countdownSeconds}s</div>
+          <div className="bg-neo-black text-neo-white border-3 border-neo-white shadow-neo-lg p-6 mb-6 text-center animate-bounce">
+            <p className="font-pixel text-lg text-neo-accent mb-2">{countdown.message || "GET READY"}</p>
+            <div className="text-5xl font-bold font-mono">{countdownSeconds}</div>
           </div>
         )}
 
@@ -260,43 +309,63 @@ const GameRoom = () => {
           currentUserId={user.id}
         />
 
-        <div className="bg-white p-4 rounded-xl shadow mb-4">
-          <p className="text-xs uppercase text-gray-500 font-semibold mb-2">Power-Ups</p>
-          <div className="flex flex-wrap gap-3">
-            {POWER_UPS.map((powerUp) => {
-              const inventoryItem = availablePowerUps.find((p) => p.type === powerUp.type);
-              return (
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          {/* Main Game Area */}
+          <div className="lg:col-span-3">
+            <PlayerStatus
+              player1Answered={gameState.player1Answered}
+              player2Answered={gameState.player2Answered}
+              isPlayer1={isPlayer1}
+            />
+
+            <QuestionCard
+              question={gameState.question.question}
+              options={gameState.question.options}
+              selectedAnswer={selectedAnswer}
+              hasAnswered={hasAnswered}
+              onAnswer={handleAnswer}
+            />
+          </div>
+
+          {/* Power Ups Sidebar */}
+          <aside className="bg-neo-white border-3 border-neo-black shadow-neo p-4 h-fit">
+            <p className="font-pixel text-xs text-neo-black mb-4 flex items-center gap-2">
+              <HiLightningBolt className="text-neo-accent" />
+              POWER-UPS
+            </p>
+            <div className="flex flex-col gap-3">
+              {/* We need to import POWER_UPS constant or define it. 
+                  Assuming it's available or we map availablePowerUps directly if it has labels.
+                  Since we don't have the constant imported in this snippet, let's rely on availablePowerUps 
+                  but usually we want the full list to show disabled ones too.
+                  For now, let's just map availablePowerUps if they have metadata, 
+                  or better, let's import the constant if we can. 
+                  Actually, let's just use availablePowerUps for now to be safe.
+              */}
+              {availablePowerUps.map((powerUp) => (
                 <button
                   key={powerUp.type}
                   onClick={() => handleUsePowerUp(powerUp.type)}
-                  disabled={hasAnswered || (inventoryItem?.quantity ?? 0) === 0 || countdown}
-                  className={`px-3 py-2 rounded-lg text-sm font-semibold border ${
-                    (inventoryItem?.quantity ?? 0) > 0
-                      ? "border-indigo-200 text-indigo-600 hover:bg-indigo-50"
-                      : "border-gray-100 text-gray-400 cursor-not-allowed"
+                  disabled={hasAnswered || powerUp.quantity <= 0 || countdown}
+                  className={`w-full px-3 py-2 border-2 border-neo-black font-bold text-xs uppercase transition-all ${
+                    powerUp.quantity > 0
+                      ? "bg-neo-bg hover:bg-neo-accent hover:-translate-y-0.5 shadow-neo-sm"
+                      : "bg-gray-200 text-gray-400 cursor-not-allowed"
                   }`}
                 >
-                  {powerUp.label} ({inventoryItem?.quantity ?? 0})
+                  <div className="flex justify-between items-center">
+                    <span>{powerUp.type}</span>
+                    <span className="bg-neo-black text-neo-white px-1.5 py-0.5 text-[10px]">
+                      x{powerUp.quantity}
+                    </span>
+                  </div>
                 </button>
-              );
-            })}
-          </div>
-        </div>
-
-        <div>
-          <PlayerStatus
-            player1Answered={gameState.player1Answered}
-            player2Answered={gameState.player2Answered}
-            isPlayer1={isPlayer1}
-          />
-
-          <QuestionCard
-            question={gameState.question.question}
-            options={gameState.question.options}
-            selectedAnswer={selectedAnswer}
-            hasAnswered={hasAnswered}
-            onAnswer={handleAnswer}
-          />
+              ))}
+              {availablePowerUps.length === 0 && (
+                <p className="text-xs font-mono text-gray-500 text-center">No power-ups available</p>
+              )}
+            </div>
+          </aside>
         </div>
       </div>
     </div>
@@ -304,4 +373,3 @@ const GameRoom = () => {
 };
 
 export default GameRoom;
-

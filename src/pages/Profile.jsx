@@ -3,6 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import api from "../utils/api";
 import { CATEGORIES } from "../utils/constants";
+import RetroBackground from "../components/RetroBackground";
+import Sidebar from "../components/Sidebar";
+import { HiUser, HiChartBar, HiClock } from "react-icons/hi2";
 
 const Profile = () => {
   const { user, logout } = useAuth();
@@ -94,9 +97,7 @@ const Profile = () => {
 
   const rating = user?.stats?.rating;
   const badges = user?.progression?.badges || [];
-  const dailyQuests = user?.progression?.daily?.quests || [];
-  const weeklyQuests = user?.progression?.weekly?.quests || [];
-
+  
   const getUserLevel = () => {
     const totalGames = user?.stats?.totalGames || 0;
     return Math.floor(totalGames / 10) + 1;
@@ -109,11 +110,10 @@ const Profile = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-8 bg-gray-50">
-        <div className="text-center">
-          <div className="loading-spinner mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading profile...</p>
-        </div>
+      <div className="min-h-screen flex items-center justify-center p-8 relative overflow-hidden">
+        <RetroBackground />
+        <Sidebar />
+        <div className="relative z-10 text-neo-black font-pixel text-2xl animate-pulse">LOADING PROFILE...</div>
       </div>
     );
   }
@@ -123,398 +123,251 @@ const Profile = () => {
   const levelProgress = getLevelProgress();
 
   return (
-    <div className="min-h-screen p-4 md:p-8 max-w-7xl mx-auto bg-gray-50">
-      <div className="bg-white rounded-2xl p-8 mb-6 shadow-lg">
-        <div className="flex justify-end gap-4 mb-6">
-          <button onClick={() => navigate("/")} className="btn btn-outline">
-            Home
-          </button>
-          <button onClick={handleLogout} className="btn btn-secondary">
-            Logout
-          </button>
-        </div>
-
-        <div className="flex flex-col md:flex-row items-center gap-8 mb-8">
-          <div className="relative">
-            <div className="w-32 h-32 bg-indigo-500 rounded-full flex items-center justify-center text-white text-5xl font-bold shadow-lg">
-              {user?.username?.charAt(0).toUpperCase()}
-            </div>
-            <div className="absolute -bottom-2 -right-2 bg-yellow-400 text-gray-800 px-3 py-1 rounded-full text-sm font-bold">
-              Lvl {userLevel}
-            </div>
+    <div className="min-h-screen p-4 md:p-8 max-w-7xl mx-auto relative overflow-hidden">
+      <RetroBackground />
+      <Sidebar />
+      <div className="relative z-10">
+        
+        {/* Profile Header */}
+        <div className="bg-neo-white border-3 border-neo-black shadow-neo-xl p-8 mb-8 relative">
+          <div className="flex justify-end gap-4 mb-6 absolute top-4 right-4">
+            <button onClick={() => navigate("/")} className="btn btn-outline border-2 border-neo-black text-xs px-3 py-1">
+              HOME
+            </button>
+            <button onClick={handleLogout} className="btn btn-primary text-xs px-3 py-1 bg-neo-primary text-white border-2 border-neo-black shadow-neo-sm hover:shadow-none hover:translate-y-1">
+              LOGOUT
+            </button>
           </div>
 
-          <div className="flex-1 text-center md:text-left">
-            <h1 className="text-4xl font-bold text-gray-800 mb-2">{user?.username}</h1>
-            <p className="text-gray-600 mb-4">{user?.email}</p>
-
-            <div className="flex gap-2 justify-center md:justify-start mb-4 flex-wrap">
-              {totalStats.winRate >= 70 && (
-                <span className="px-3 py-1 bg-yellow-400 text-gray-800 rounded-full text-xs font-semibold">
-                  🏆 Champion
-                </span>
-              )}
-              {totalStats.totalGames >= 50 && (
-                <span className="px-3 py-1 bg-gray-300 text-gray-800 rounded-full text-xs font-semibold">
-                  ⭐ Veteran
-                </span>
-              )}
-              {totalStats.totalGames >= 100 && (
-                <span className="px-3 py-1 bg-purple-300 text-gray-800 rounded-full text-xs font-semibold">
-                  ⚡ Master
-                </span>
-              )}
-            </div>
-
-            <div className="w-full bg-gray-200 rounded-full h-3 mb-2">
-              <div
-                className="bg-indigo-500 h-3 rounded-full transition-all"
-                style={{ width: `${levelProgress}%` }}
-              ></div>
-            </div>
-            <p className="text-sm text-gray-600">{levelProgress}% to Level {userLevel + 1}</p>
-          </div>
-        </div>
-      </div>
-
-      {rating && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-          <div className="bg-white p-6 rounded-xl shadow-lg flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-500 uppercase font-semibold">Current Tier</p>
-              <p className="text-3xl font-bold text-gray-800">{rating.tier}</p>
-              <p className="text-sm text-gray-500">Overall MMR {Math.round(rating.overall || 1200)}</p>
-            </div>
-            <div className="text-right text-sm text-gray-500">
-              <p className="font-semibold">Unlocked</p>
-              <p>{(rating.tiersUnlocked || []).join(", ")}</p>
-            </div>
-          </div>
-          <div className="bg-white p-6 rounded-xl shadow-lg">
-            <p className="text-sm text-gray-500 uppercase font-semibold mb-2">Category Ratings</p>
-            <div className="space-y-1 text-sm text-gray-700 max-h-40 overflow-auto">
-              {Object.entries(rating.categories || {}).map(([category, mmr]) => (
-                <div key={category} className="flex justify-between">
-                  <span>{category}</span>
-                  <span className="font-semibold">{Math.round(mmr)}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
-        <div className="bg-white p-6 rounded-xl shadow-lg text-center">
-          <div className="text-3xl mb-2">🎯</div>
-          <div className="text-sm text-gray-600 mb-1">Total Games</div>
-          <div className="text-2xl font-bold text-indigo-500">{totalStats.totalGames}</div>
-        </div>
-
-        <div className="bg-white p-6 rounded-xl shadow-lg text-center">
-          <div className="text-3xl mb-2">🏆</div>
-          <div className="text-sm text-gray-600 mb-1">Wins</div>
-          <div className="text-2xl font-bold text-green-500">{totalStats.wins}</div>
-        </div>
-
-        <div className="bg-white p-6 rounded-xl shadow-lg text-center">
-          <div className="text-3xl mb-2">⚡</div>
-          <div className="text-sm text-gray-600 mb-1">Losses</div>
-          <div className="text-2xl font-bold text-red-500">{totalStats.losses}</div>
-        </div>
-
-        <div className="bg-white p-6 rounded-xl shadow-lg text-center">
-          <div className="text-3xl mb-2">📈</div>
-          <div className="text-sm text-gray-600 mb-1">Win Rate</div>
-          <div className="text-2xl font-bold text-indigo-500">{totalStats.winRate.toFixed(1)}%</div>
-        </div>
-
-        <div className="bg-white p-6 rounded-xl shadow-lg text-center">
-          <div className="text-3xl mb-2">⭐</div>
-          <div className="text-sm text-gray-600 mb-1">Avg Score</div>
-          <div className="text-2xl font-bold text-indigo-500">{Math.round(totalStats.avgScore)}</div>
-        </div>
-
-        <div className="bg-white p-6 rounded-xl shadow-lg text-center">
-          <div className="text-3xl mb-2">💎</div>
-          <div className="text-sm text-gray-600 mb-1">Total Points</div>
-          <div className="text-2xl font-bold text-indigo-500">{user?.stats?.totalPoints || 0}</div>
-        </div>
-      </div>
-
-      {badges.length > 0 && (
-        <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
-          <h3 className="text-xl font-bold text-gray-800 mb-4">Badge Cabinet</h3>
-          <div className="flex flex-wrap gap-3">
-            {badges.map((badge) => (
-              <div
-                key={badge.id}
-                className={`px-4 py-2 rounded-full text-sm font-semibold ${
-                  badge.equipped ? "bg-indigo-500 text-white" : "bg-gray-100 text-gray-700"
-                }`}
-              >
-                {badge.name}
+          <div className="flex flex-col md:flex-row items-center gap-8 mt-4">
+            <div className="relative">
+              <div className="w-32 h-32 bg-neo-bg border-3 border-neo-black flex items-center justify-center text-neo-black text-5xl font-bold shadow-neo">
+                {user?.username?.charAt(0).toUpperCase()}
               </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      <div className="bg-white rounded-xl shadow-lg mb-6">
-        <div className="flex border-b border-gray-200">
-          <button
-            className={`flex-1 px-6 py-4 font-semibold transition-colors ${
-              activeTab === "overview"
-                ? "text-indigo-500 border-b-2 border-indigo-500"
-                : "text-gray-600 hover:text-indigo-500"
-            }`}
-            onClick={() => setActiveTab("overview")}
-          >
-            Overview
-          </button>
-          <button
-            className={`flex-1 px-6 py-4 font-semibold transition-colors ${
-              activeTab === "categories"
-                ? "text-indigo-500 border-b-2 border-indigo-500"
-                : "text-gray-600 hover:text-indigo-500"
-            }`}
-            onClick={() => setActiveTab("categories")}
-          >
-            Categories
-          </button>
-          <button
-            className={`flex-1 px-6 py-4 font-semibold transition-colors ${
-              activeTab === "history"
-                ? "text-indigo-500 border-b-2 border-indigo-500"
-                : "text-gray-600 hover:text-indigo-500"
-            }`}
-            onClick={() => setActiveTab("history")}
-          >
-            History
-          </button>
-        </div>
-
-        <div className="p-6">
-          {activeTab === "overview" && (
-            <div>
-              <h2 className="text-2xl font-bold mb-6 text-gray-800">Performance Overview</h2>
-
-              <div className="mb-8">
-                <div className="flex h-8 rounded-lg overflow-hidden mb-4">
-                  <div
-                    className="bg-green-500 flex items-center justify-center text-white font-semibold"
-                    style={{ width: `${totalStats.winRate}%` }}
-                  >
-                    {totalStats.winRate > 10 && `${totalStats.wins} Wins`}
-                  </div>
-                  <div
-                    className="bg-red-500 flex items-center justify-center text-white font-semibold"
-                    style={{ width: `${100 - totalStats.winRate}%` }}
-                  >
-                    {100 - totalStats.winRate > 10 && `${totalStats.losses} Losses`}
-                  </div>
-                </div>
-                <div className="flex justify-around text-center">
-                  <div>
-                    <div className="text-2xl font-bold text-green-500">{totalStats.winRate.toFixed(1)}%</div>
-                    <div className="text-sm text-gray-600">Win Rate</div>
-                  </div>
-                  <div>
-                    <div className="text-2xl font-bold text-red-500">{(100 - totalStats.winRate).toFixed(1)}%</div>
-                    <div className="text-sm text-gray-600">Loss Rate</div>
-                  </div>
-                </div>
+              <div className="absolute -bottom-3 -right-3 bg-neo-accent text-neo-black px-3 py-1 border-2 border-neo-black text-sm font-bold font-mono uppercase shadow-neo-sm">
+                Lvl {userLevel}
               </div>
+            </div>
 
-              <div>
-                <h3 className="text-xl font-semibold mb-4 text-gray-800">Recent Activity</h3>
-                {history.length > 0 ? (
-                  <div className="space-y-4">
-                    {history.slice(0, 5).map((game) => {
-                      const userPlayer = game.players.find(
-                        (p) => p.user._id?.toString() === user.id || p.user.toString() === user.id
-                      );
-                      const opponent = game.players.find(
-                        (p) => p.user._id?.toString() !== user.id && p.user.toString() !== user.id
-                      );
-                      const isWinner = userPlayer?.isWinner || false;
+            <div className="flex-1 text-center md:text-left">
+              <h1 className="text-4xl font-bold font-pixel text-neo-black mb-2">{user?.username}</h1>
+              <p className="text-gray-600 font-mono mb-4">{user?.email}</p>
 
-                      return (
-                        <div
-                          key={game._id}
-                          className={`p-4 rounded-lg border-l-4 ${
-                            isWinner ? "bg-green-50 border-green-500" : "bg-red-50 border-red-500"
-                          }`}
-                        >
-                          <div className="flex justify-between items-center mb-2">
-                            <span
-                              className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                                isWinner ? "bg-green-500 text-white" : "bg-red-500 text-white"
-                              }`}
-                            >
-                              {isWinner ? "Victory" : "Defeat"}
-                            </span>
-                            <span className="font-bold text-gray-800">{userPlayer?.score || 0} pts</span>
-                          </div>
-                          <p className="text-gray-700 mb-2">vs {opponent?.user?.username || "Opponent"}</p>
-                          <div className="flex gap-4 text-sm text-gray-600">
-                            <span className="px-2 py-1 bg-indigo-100 text-indigo-700 rounded">
-                              {game.category}
-                            </span>
-                            <span>{formatDate(game.createdAt)}</span>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <div className="text-center py-12">
-                    <div className="text-6xl mb-4">🎯</div>
-                    <p className="text-gray-600 mb-4">No games played yet</p>
-                    <button onClick={() => navigate("/")} className="btn btn-primary">
-                      Start Your First Battle
-                    </button>
-                  </div>
+              <div className="flex gap-2 justify-center md:justify-start mb-4 flex-wrap">
+                {totalStats.winRate >= 70 && (
+                  <span className="px-3 py-1 bg-neo-accent border-2 border-neo-black text-neo-black text-xs font-bold uppercase">
+                    🏆 Champion
+                  </span>
+                )}
+                {totalStats.totalGames >= 50 && (
+                  <span className="px-3 py-1 bg-gray-300 border-2 border-neo-black text-neo-black text-xs font-bold uppercase">
+                    ⭐ Veteran
+                  </span>
+                )}
+                {totalStats.totalGames >= 100 && (
+                  <span className="px-3 py-1 bg-neo-purple border-2 border-neo-black text-neo-black text-xs font-bold uppercase">
+                    ⚡ Master
+                  </span>
                 )}
               </div>
-            </div>
-          )}
 
-          {activeTab === "categories" && (
-            <div>
-              <h2 className="text-2xl font-bold mb-6 text-gray-800">Category Performance</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {CATEGORIES.map((category) => {
-                  const stats = categoryStats[category] || {
-                    totalGames: 0,
-                    wins: 0,
-                    losses: 0,
-                    winRate: 0,
-                    avgScore: 0,
-                    bestScore: 0,
-                  };
-
-                  return (
-                    <div key={category} className="bg-gray-50 p-6 rounded-xl border-2 border-gray-200">
-                      <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-xl font-bold text-gray-800">{category}</h3>
-                        <span className="text-sm text-gray-600">{stats.totalGames} games</span>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-4 mb-4">
-                        <div className="text-center">
-                          <div className="text-2xl font-bold text-indigo-500">{stats.winRate.toFixed(1)}%</div>
-                          <div className="text-xs text-gray-600">Win Rate</div>
-                        </div>
-                        <div className="text-center">
-                          <div className="text-2xl font-bold text-green-500">{stats.wins}</div>
-                          <div className="text-xs text-gray-600">Wins</div>
-                        </div>
-                        <div className="text-center">
-                          <div className="text-2xl font-bold text-red-500">{stats.losses}</div>
-                          <div className="text-xs text-gray-600">Losses</div>
-                        </div>
-                        <div className="text-center">
-                          <div className="text-2xl font-bold text-indigo-500">{stats.avgScore}</div>
-                          <div className="text-xs text-gray-600">Avg Score</div>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-2 mb-4 text-sm text-gray-700">
-                        <span>🏆</span>
-                        <span>Best: {stats.bestScore} pts</span>
-                      </div>
-
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div
-                          className="bg-indigo-500 h-2 rounded-full"
-                          style={{ width: `${stats.winRate}%` }}
-                        ></div>
-                      </div>
-                    </div>
-                  );
-                })}
+              <div className="w-full bg-gray-200 border-2 border-neo-black h-4 mb-2 relative">
+                <div
+                  className="bg-neo-green h-full absolute top-0 left-0 border-r-2 border-neo-black"
+                  style={{ width: `${levelProgress}%` }}
+                ></div>
               </div>
+              <p className="text-xs font-mono font-bold text-gray-600 uppercase text-right">{levelProgress}% to Level {userLevel + 1}</p>
             </div>
-          )}
+          </div>
+        </div>
 
-          {activeTab === "history" && (
-            <div>
-              <h2 className="text-2xl font-bold mb-6 text-gray-800">Match History</h2>
-              {history.length > 0 ? (
-                <div className="space-y-4">
-                  {history.map((game) => {
-                    const userPlayer = game.players.find(
-                      (p) => p.user._id?.toString() === user.id || p.user.toString() === user.id
-                    );
-                    const opponent = game.players.find(
-                      (p) => p.user._id?.toString() !== user.id && p.user.toString() !== user.id
-                    );
-                    const isWinner = userPlayer?.isWinner || false;
+        {/* Stats Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
+          {[
+            { label: "Total Games", value: totalStats.totalGames, icon: "🎯", color: "text-neo-black" },
+            { label: "Wins", value: totalStats.wins, icon: "🏆", color: "text-neo-green" },
+            { label: "Losses", value: totalStats.losses, icon: "💀", color: "text-neo-primary" },
+            { label: "Win Rate", value: `${totalStats.winRate.toFixed(1)}%`, icon: "📈", color: "text-neo-black" },
+            { label: "Avg Score", value: Math.round(totalStats.avgScore), icon: "⭐", color: "text-neo-purple" },
+            { label: "Total Points", value: user?.stats?.totalPoints || 0, icon: "💎", color: "text-neo-accent" },
+          ].map((stat, i) => (
+            <div key={i} className="bg-neo-white p-4 border-3 border-neo-black shadow-neo text-center">
+              <div className="text-2xl mb-2">{stat.icon}</div>
+              <div className="text-xs font-bold font-mono text-gray-600 uppercase mb-1">{stat.label}</div>
+              <div className={`text-xl font-bold font-pixel ${stat.color}`}>{stat.value}</div>
+            </div>
+          ))}
+        </div>
 
-                    return (
-                      <div
-                        key={game._id}
-                        className={`p-6 rounded-xl border-l-4 ${
-                          isWinner ? "bg-green-50 border-green-500" : "bg-red-50 border-red-500"
-                        }`}
-                      >
-                        <div className="flex items-center gap-4 mb-4">
-                          <div className={`text-3xl ${isWinner ? "text-green-500" : "text-red-500"}`}>
-                            {isWinner ? "🏆" : "🎯"}
-                          </div>
-                          <span
-                            className={`text-lg font-semibold ${
-                              isWinner ? "text-green-700" : "text-red-700"
+        {/* Tabs */}
+        <div className="bg-neo-white border-3 border-neo-black shadow-neo-xl mb-8">
+          <div className="flex border-b-3 border-neo-black bg-neo-bg">
+            {["overview", "categories", "history"].map((tab) => (
+              <button
+                key={tab}
+                className={`flex-1 px-6 py-4 font-bold font-mono uppercase transition-all ${
+                  activeTab === tab
+                    ? "bg-neo-white text-neo-black border-r-3 border-l-3 border-neo-black -mb-[3px] pb-[calc(1rem+3px)] z-10"
+                    : "text-gray-500 hover:bg-gray-100 hover:text-neo-black"
+                }`}
+                onClick={() => setActiveTab(tab)}
+              >
+                {tab}
+              </button>
+            ))}
+          </div>
+
+          <div className="p-8">
+            {activeTab === "overview" && (
+              <div>
+                <h2 className="text-2xl font-bold font-pixel mb-6 text-neo-black">PERFORMANCE OVERVIEW</h2>
+                <div className="mb-8">
+                  <div className="flex h-12 border-3 border-neo-black mb-4 bg-gray-200">
+                    <div
+                      className="bg-neo-green flex items-center justify-center text-neo-black font-bold font-mono border-r-3 border-neo-black"
+                      style={{ width: `${totalStats.winRate}%` }}
+                    >
+                      {totalStats.winRate > 15 && `${totalStats.wins} WINS`}
+                    </div>
+                    <div
+                      className="bg-neo-primary flex items-center justify-center text-white font-bold font-mono"
+                      style={{ width: `${100 - totalStats.winRate}%` }}
+                    >
+                      {100 - totalStats.winRate > 15 && `${totalStats.losses} LOSSES`}
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="text-xl font-bold font-pixel mb-4 text-neo-black">RECENT ACTIVITY</h3>
+                  {history.length > 0 ? (
+                    <div className="space-y-4">
+                      {history.slice(0, 5).map((game) => {
+                        const userPlayer = game.players.find(
+                          (p) => p.user._id?.toString() === user.id || p.user.toString() === user.id
+                        );
+                        const opponent = game.players.find(
+                          (p) => p.user._id?.toString() !== user.id && p.user.toString() !== user.id
+                        );
+                        const isWinner = userPlayer?.isWinner || false;
+
+                        return (
+                          <div
+                            key={game._id}
+                            className={`p-4 border-3 border-neo-black shadow-neo-sm ${
+                              isWinner ? "bg-neo-green/20" : "bg-neo-primary/10"
                             }`}
                           >
-                            {isWinner ? "Victory" : "Defeat"}
-                          </span>
-                        </div>
-
-                        <div className="mb-4">
-                          <div className="text-sm text-gray-600 mb-1">Opponent</div>
-                          <div className="font-semibold text-gray-800">{opponent?.user?.username || "Unknown"}</div>
-                        </div>
-
-                        <div className="flex items-center justify-around mb-4 p-4 bg-white rounded-lg">
-                          <div className="text-center">
-                            <div className="text-sm text-gray-600 mb-1">You</div>
-                            <div className="text-2xl font-bold text-indigo-500">{userPlayer?.score || 0}</div>
+                            <div className="flex justify-between items-center mb-2">
+                              <span
+                                className={`px-2 py-0.5 border-2 border-neo-black text-xs font-bold uppercase ${
+                                  isWinner ? "bg-neo-green text-neo-black" : "bg-neo-primary text-white"
+                                }`}
+                              >
+                                {isWinner ? "VICTORY" : "DEFEAT"}
+                              </span>
+                              <span className="font-bold font-mono text-neo-black">{userPlayer?.score || 0} PTS</span>
+                            </div>
+                            <p className="text-neo-black font-bold font-mono mb-2 uppercase text-sm">VS {opponent?.user?.username || "OPPONENT"}</p>
+                            <div className="flex gap-4 text-xs font-mono font-bold text-gray-600 uppercase">
+                              <span className="px-2 py-1 bg-neo-white border-2 border-neo-black">
+                                {game.category}
+                              </span>
+                              <span className="py-1">{formatDate(game.createdAt)}</span>
+                            </div>
                           </div>
-                          <div className="text-xl font-bold text-gray-500">-</div>
-                          <div className="text-center">
-                            <div className="text-sm text-gray-600 mb-1">Opp</div>
-                            <div className="text-2xl font-bold text-indigo-500">{opponent?.score || 0}</div>
-                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <p className="text-gray-500 font-mono italic">No games played yet.</p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {activeTab === "categories" && (
+              <div>
+                <h2 className="text-2xl font-bold font-pixel mb-6 text-neo-black">CATEGORY STATS</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {CATEGORIES.map((category) => {
+                    const stats = categoryStats[category] || {
+                      totalGames: 0,
+                      wins: 0,
+                      losses: 0,
+                      winRate: 0,
+                      avgScore: 0,
+                      bestScore: 0,
+                    };
+
+                    return (
+                      <div key={category} className="bg-neo-white p-6 border-3 border-neo-black shadow-neo-sm">
+                        <div className="flex justify-between items-center mb-4 border-b-2 border-neo-black pb-2">
+                          <h3 className="text-lg font-bold font-pixel text-neo-black uppercase">{category}</h3>
+                          <span className="text-xs font-bold font-mono bg-neo-black text-neo-white px-2 py-1">{stats.totalGames} GAMES</span>
                         </div>
 
-                        <div className="flex gap-4 flex-wrap text-sm text-gray-600">
-                          <span className="px-3 py-1 bg-indigo-100 text-indigo-700 rounded">
-                            {game.category}
-                          </span>
-                          <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded">
-                            ⏱️ {game.duration}s
-                          </span>
-                          <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded">
-                            📅 {formatDate(game.createdAt)}
-                          </span>
+                        <div className="grid grid-cols-2 gap-4 mb-4 text-center">
+                          <div>
+                            <div className="text-xl font-bold font-pixel text-neo-black">{stats.winRate.toFixed(0)}%</div>
+                            <div className="text-[10px] font-bold font-mono text-gray-500 uppercase">WIN RATE</div>
+                          </div>
+                          <div>
+                            <div className="text-xl font-bold font-pixel text-neo-green">{stats.wins}</div>
+                            <div className="text-[10px] font-bold font-mono text-gray-500 uppercase">WINS</div>
+                          </div>
+                          <div>
+                            <div className="text-xl font-bold font-pixel text-neo-primary">{stats.losses}</div>
+                            <div className="text-[10px] font-bold font-mono text-gray-500 uppercase">LOSSES</div>
+                          </div>
+                          <div>
+                            <div className="text-xl font-bold font-pixel text-neo-purple">{stats.avgScore}</div>
+                            <div className="text-[10px] font-bold font-mono text-gray-500 uppercase">AVG SCORE</div>
+                          </div>
                         </div>
                       </div>
                     );
                   })}
                 </div>
-              ) : (
-                <div className="text-center py-12">
-                  <div className="text-6xl mb-4">⏰</div>
-                  <p className="text-gray-600 mb-4">No match history yet</p>
-                  <button onClick={() => navigate("/")} className="btn btn-primary">
-                    Play Your First Game
-                  </button>
+              </div>
+            )}
+
+            {activeTab === "history" && (
+              <div>
+                <h2 className="text-2xl font-bold font-pixel mb-6 text-neo-black">FULL HISTORY</h2>
+                {/* Reusing History logic but simplified for tab view */}
+                <div className="space-y-4">
+                  {history.map((game) => {
+                     const userPlayer = game.players.find(
+                      (p) => p.user._id?.toString() === user.id || p.user.toString() === user.id
+                    );
+                    const isWinner = userPlayer?.isWinner || false;
+                    return (
+                      <div key={game._id} className="border-2 border-neo-black p-4 flex justify-between items-center bg-neo-bg shadow-neo-sm">
+                         <div className="flex items-center gap-4">
+                            <span className={`text-2xl ${isWinner ? "text-neo-green" : "text-neo-primary"}`}>
+                              {isWinner ? "🏆" : "💀"}
+                            </span>
+                            <div>
+                               <p className="font-bold font-mono uppercase text-sm">{game.category}</p>
+                               <p className="text-xs text-gray-600">{formatDate(game.createdAt)}</p>
+                            </div>
+                         </div>
+                         <div className="text-right">
+                            <p className="font-bold font-pixel text-lg">{userPlayer?.score} PTS</p>
+                            <p className={`text-xs font-bold uppercase ${isWinner ? "text-neo-green" : "text-neo-primary"}`}>
+                                {isWinner ? "VICTORY" : "DEFEAT"}
+                            </p>
+                         </div>
+                      </div>
+                    )
+                  })}
+                  {history.length === 0 && <p className="text-gray-500 font-mono italic">No match history found.</p>}
                 </div>
-              )}
-            </div>
-          )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

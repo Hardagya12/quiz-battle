@@ -2,6 +2,9 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import api from "../utils/api";
+import RetroBackground from "../components/RetroBackground";
+import Sidebar from "../components/Sidebar";
+import { HiClock } from "react-icons/hi2";
 
 const History = () => {
   const { user } = useAuth();
@@ -31,83 +34,90 @@ const History = () => {
   };
 
   return (
-    <div className="min-h-screen p-4 md:p-8 max-w-7xl mx-auto bg-gray-50">
-      <div className="flex justify-between items-center mb-8 flex-wrap gap-4">
-        <h1 className="text-4xl font-bold text-gray-800">Game History</h1>
-        <button onClick={() => navigate("/")} className="btn btn-secondary">
-          Back to Home
-        </button>
-      </div>
-
-      {loading ? (
-        <div className="loading">Loading history...</div>
-      ) : history.length === 0 ? (
-        <div className="bg-white p-12 rounded-xl shadow-lg text-center">
-          <p className="mb-6 text-xl text-gray-600">No games played yet. Start your first battle!</p>
-          <button onClick={() => navigate("/")} className="btn btn-primary">
-            Play Now
+    <div className="min-h-screen p-4 md:p-8 max-w-7xl mx-auto relative overflow-hidden">
+      <RetroBackground />
+      <Sidebar />
+      <div className="relative z-10">
+        <header className="flex justify-between items-center mb-8 flex-wrap gap-4 bg-neo-white p-6 border-3 border-neo-black shadow-neo">
+          <h1 className="text-3xl font-bold font-pixel text-neo-black flex items-center gap-3">
+            <HiClock className="text-neo-purple" />
+            BATTLE HISTORY
+          </h1>
+          <button onClick={() => navigate("/")} className="btn btn-secondary">
+            BACK TO HOME
           </button>
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {history.map((game) => {
-            const userPlayer = game.players.find(
-              (p) => p.user._id?.toString() === user.id || p.user.toString() === user.id
-            );
-            const opponent = game.players.find(
-              (p) => p.user._id?.toString() !== user.id && p.user.toString() !== user.id
-            );
-            const isWinner = game.winner && (game.winner._id?.toString() === user.id || game.winner.toString() === user.id);
+        </header>
 
-            return (
-              <div
-                key={game._id}
-                className={`bg-white p-6 rounded-xl shadow-lg border-l-4 transition-all hover:-translate-y-1 hover:shadow-xl ${
-                  isWinner ? "border-green-500" : "border-red-500"
-                }`}
-              >
-                <div className="flex justify-between items-center mb-4 flex-wrap gap-4">
-                  <div className="flex items-center gap-4 flex-wrap">
-                    <span
-                      className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                        isWinner
-                          ? "bg-green-500 text-white"
-                          : "bg-red-500 text-white"
-                      }`}
-                    >
-                      {isWinner ? "Won" : "Lost"}
+        {loading ? (
+          <div className="text-center font-pixel text-xl animate-pulse text-neo-black">LOADING HISTORY...</div>
+        ) : history.length === 0 ? (
+          <div className="bg-neo-white p-12 border-3 border-neo-black shadow-neo-xl text-center">
+            <p className="mb-6 text-xl font-mono text-neo-black">No games played yet. Start your first battle!</p>
+            <button onClick={() => navigate("/")} className="btn btn-primary">
+              PLAY NOW
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {history.map((game) => {
+              const userPlayer = game.players.find(
+                (p) => p.user._id?.toString() === user.id || p.user.toString() === user.id
+              );
+              const opponent = game.players.find(
+                (p) => p.user._id?.toString() !== user.id && p.user.toString() !== user.id
+              );
+              const isWinner = game.winner && (game.winner._id?.toString() === user.id || game.winner.toString() === user.id);
+
+              return (
+                <div
+                  key={game._id}
+                  className={`bg-neo-white p-6 border-3 border-neo-black shadow-neo transition-all hover:-translate-y-1 hover:shadow-neo-lg relative overflow-hidden`}
+                >
+                  {/* Status Strip */}
+                  <div className={`absolute top-0 left-0 w-2 h-full ${isWinner ? "bg-neo-green" : "bg-neo-primary"}`} />
+
+                  <div className="flex justify-between items-center mb-4 flex-wrap gap-4 pl-4">
+                    <div className="flex items-center gap-4 flex-wrap">
+                      <span
+                        className={`px-3 py-1 border-2 border-neo-black text-xs font-bold uppercase ${
+                          isWinner
+                            ? "bg-neo-green text-neo-black"
+                            : "bg-neo-primary text-white"
+                        }`}
+                      >
+                        {isWinner ? "VICTORY" : "DEFEAT"}
+                      </span>
+                      <span className="text-sm font-mono text-gray-600 font-bold">{formatDate(game.createdAt)}</span>
+                    </div>
+                    <span className="px-3 py-1 bg-neo-accent border-2 border-neo-black text-neo-black text-xs font-bold uppercase">
+                      {game.category}
                     </span>
-                    <span className="text-sm text-gray-500">{formatDate(game.createdAt)}</span>
                   </div>
-                  <span className="px-3 py-1 bg-indigo-500 text-white rounded-full text-xs font-semibold">
-                    {game.category}
-                  </span>
-                </div>
 
-                <div className="flex items-center justify-around mb-4 p-4 bg-gray-50 rounded-lg flex-col md:flex-row gap-4">
-                  <div className="text-center">
-                    <p className="font-semibold text-gray-800 mb-1">{userPlayer?.user?.username || "You"}</p>
-                    <p className="text-2xl font-bold text-indigo-500">{userPlayer?.score || 0} pts</p>
+                  <div className="flex items-center justify-around mb-4 p-4 bg-neo-bg border-2 border-neo-black flex-col md:flex-row gap-4 mx-4">
+                    <div className="text-center">
+                      <p className="font-bold font-mono text-neo-black mb-1 uppercase text-sm">{userPlayer?.user?.username || "You"}</p>
+                      <p className="text-2xl font-bold font-pixel text-neo-black">{userPlayer?.score || 0}</p>
+                    </div>
+                    <span className="text-xl font-bold font-pixel text-neo-black">VS</span>
+                    <div className="text-center">
+                      <p className="font-bold font-mono text-neo-black mb-1 uppercase text-sm">{opponent?.user?.username || "Opponent"}</p>
+                      <p className="text-2xl font-bold font-pixel text-gray-600">{opponent?.score || 0}</p>
+                    </div>
                   </div>
-                  <span className="text-xl font-bold text-gray-500">VS</span>
-                  <div className="text-center">
-                    <p className="font-semibold text-gray-800 mb-1">{opponent?.user?.username || "Opponent"}</p>
-                    <p className="text-2xl font-bold text-indigo-500">{opponent?.score || 0} pts</p>
-                  </div>
-                </div>
 
-                <div className="flex justify-around pt-4 border-t border-gray-200 text-sm text-gray-600">
-                  <span>Duration: {game.duration}s</span>
-                  <span>Questions: {game.questions?.length || 10}</span>
+                  <div className="flex justify-around pt-4 border-t-2 border-dashed border-gray-300 text-sm font-mono font-bold text-gray-600 pl-4">
+                    <span>DURATION: {game.duration}s</span>
+                    <span>QUESTIONS: {game.questions?.length || 10}</span>
+                  </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
+              );
+            })}
+          </div>
+        )}
+      </div>
     </div>
   );
 };
 
 export default History;
-
